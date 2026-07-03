@@ -264,7 +264,7 @@ class RalseiBot(Bot):
         await self.log_something(f"{before.name} -> {after.name}\n{after.name} with id: {after.id}!")
     
     async def on_message(self, message: discord.Message):
-        if message.author.id != int(os.environ["TRUSTED_USER"]) and message.author != self:
+        if message.author.id != int(os.environ["TRUSTED_USER"]) or message.author == self:
             return
         
         message_split = message.clean_content.strip().split()
