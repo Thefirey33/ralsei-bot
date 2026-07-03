@@ -179,6 +179,10 @@ class RalseiBot(Bot):
         # After all the cogs are added, move onto syncing
         logger.info("Cog initialization is done, Bot is active")
     
+    async def log_something(self, message: str):
+        logging_channel = await self.get_logging_channel()
+        logging_channel.send(message)
+    
     async def get_moderation_channel(self) -> discord.TextChannel:
         return await self.fetch_channel(os.environ["MODERATION_CHANNEL"])
     
@@ -254,6 +258,10 @@ class RalseiBot(Bot):
             return
         
         await self.run_member_checks(member)
+        await self.log_something(f"{member.name} with ID {member.id} has joined!")
+    
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        await self.log_something(f"{before.name} -> {after.name}\n{after.name} with id: {after.id}!")
     
     async def on_message(self, message: discord.Message):
         if message.author.id != int(os.environ["TRUSTED_USER"]) and message.author != self:
