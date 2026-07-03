@@ -106,7 +106,7 @@ class RalseiRandomQoutesCheckCog(Cog):
         if self.time_seconds_left % LOG_OUTPUT == 0:
             logger.info(f"Next qoute in {datetime.timedelta(seconds=self.time_seconds_left)}!")
         # If below zero, send a random qoute.
-        channel = await self.bot.get_logging_channel()
+        channel = await self.bot.get_general_channel()
         
         if self.time_seconds_left < 0:
             # Enact a check that must do the specified steps.
