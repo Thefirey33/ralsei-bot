@@ -181,7 +181,7 @@ class RalseiBot(Bot):
     
     async def log_something(self, message: str):
         logging_channel = await self.get_logging_channel()
-        logging_channel.send(message)
+        await logging_channel.send(message)
     
     async def get_moderation_channel(self) -> discord.TextChannel:
         return await self.fetch_channel(os.environ["MODERATION_CHANNEL"])
