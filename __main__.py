@@ -18,8 +18,8 @@ import os
 # General constants
 ONE_HOUR_SECONDS = 3600
 # Random qoute checking
-RANDOM_START = 40
-RANDOM_END = 120
+RANDOM_START = 1
+RANDOM_END = 40
 MINIMUM_LAST_MESSAGE_HOUR = 5
 LOG_OUTPUT = 120
 # Other general constants
