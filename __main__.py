@@ -130,13 +130,13 @@ class RalseiHibernationCheckCog(Cog):
         
         # If the current time is over the ending time, set it to IDLE mode.
         # This is when the bot will not send any messages.
-        if current_time.hour > ending_time.hour or current_time.hour < beginning_time.hour:
+        if current_time.hour >= ending_time.hour or current_time.hour < beginning_time.hour:
             await self.bot.change_presence(status=discord.Status.idle, activity=discord.Game("*fluffy boy is sleeping*"))
             self.bot.is_interaction_active = False
             return
         
         # If not, set the bot to online mode again, and the interactions will resume.
-        if current_time.hour > beginning_time.hour:
+        if current_time.hour >= beginning_time.hour:
             await self.bot.change_presence(status=discord.Status.online, activity=discord.Game("*hanging around in Castle Town*"))
             self.bot.is_interaction_active = True
     
