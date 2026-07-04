@@ -56,7 +56,7 @@ class RalseiRandomQoutesCheckCog(Cog):
     def pick_random_time(self):
         return random.randrange(RANDOM_START, RANDOM_END) * ONE_HOUR_SECONDS
 
-    def __init__(self, bot: RalseiBot):
+    def __init__(self, bot):
         super().__init__()
         self.bot = bot
         # Pick a random time to start off with.
@@ -140,7 +140,7 @@ class RalseiHibernationCheckCog(Cog):
             await self.bot.change_presence(status=discord.Status.online, activity=discord.Game("*hanging around in Castle Town*"))
             self.bot.is_interaction_active = True
     
-    def __init__(self, bot: RalseiBot):
+    def __init__(self, bot):
         super().__init__()
         self.bot = bot
         # Start the hibernation times counter.
