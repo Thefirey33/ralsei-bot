@@ -59,7 +59,6 @@ class RalseiActiveCog(Cog):
                 status=Status.idle, activity=discord.Game(name="*fluffy boi is asleep*")
             )
             self.ralsei_bot.awake = False
-
         elif current_time.hour >= beginning_time.hour:
             self.ralsei_bot.awake = True
             await self.ralsei_bot.change_presence(
