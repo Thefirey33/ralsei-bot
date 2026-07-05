@@ -60,7 +60,7 @@ class RalseiActiveCog(Cog):
             )
             self.ralsei_bot.awake = False
 
-        if current_time.hour >= beginning_time.hour:
+        elif current_time.hour >= beginning_time.hour:
             self.ralsei_bot.awake = True
             await self.ralsei_bot.change_presence(
                 status=Status.online,
@@ -79,7 +79,7 @@ class RalseiActiveCog(Cog):
     async def cog_unload(self):
         self.bot_hibernation_state.cancel()
 
-    @loop(time=[beginning_time, ending_time])
+    @loop(seconds=10)
     async def bot_hibernation_state(self):
         """
         This allows the Ralsei bot to have an active 'Sleep Schedule'.
