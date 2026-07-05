@@ -78,7 +78,7 @@ class RalseiActiveCog(Cog):
     async def cog_unload(self):
         self.bot_hibernation_state.cancel()
 
-    @loop(seconds=10)
+    @loop(time=[beginning_time, ending_time])
     async def bot_hibernation_state(self):
         """
         This allows the Ralsei bot to have an active 'Sleep Schedule'.
