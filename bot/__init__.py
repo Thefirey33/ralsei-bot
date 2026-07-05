@@ -1,19 +1,37 @@
 import asyncio
-import os
+import inspect
+import sys
 from datetime import datetime, time
 
 import discord
 from better_profanity import profanity
-from discord import Guild, Intents, Message, Status, TextChannel
+from discord import (
+    DMChannel,
+    Guild,
+    Intents,
+    Message,
+    Status,
+    TextChannel,
+    VoiceChannel,
+)
 from discord.ext.commands import Bot, Cog
 from discord.ext.tasks import loop
 
 from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager, RalseiBotDatabaseModal
-from definitions import MESSAGE_TYPE_DIVISION, PAT_PAT_TYPES, active_timezone
+from definitions import (
+    MESSAGE_TYPE_DIVISION,
+    PAT_PAT_TYPES,
+    active_timezone,
+    get_trusted_id,
+)
 from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
 from logsystem import ralsei_bot_logger
 from security.member_security import MemberSecurityCog
+from security.moderation_commands import ModerationCommands
+
+# NOTE: If you remove this line, the language server will start bitching. So don't.
+__all__ = ["MemberSecurityCog", "ModerationCommands"]
 
 # This is the time defined where Ralsei 'wakes up'
 beginning_time = time(hour=8, tzinfo=active_timezone)
@@ -96,7 +114,7 @@ class RalseiBot(Bot):
 
     def __init__(self):
         super().__init__(
-            command_prefix="pls", intents=Intents.all(), status=Status.offline
+            command_prefix="!", intents=Intents.all(), status=Status.offline
         )
         self.database_manager = RalseiBotDatabaseManager()
         self.data_manager = RalseiDataManager()
@@ -152,6 +170,17 @@ class RalseiBot(Bot):
         ralsei_bot_logger.info("Registering cog: %s", cog.__name__)
         await self.add_cog(cog(self))
 
+    async def start_typing(
+        self,
+        msg: str,
+        message_type_penalty: float,
+        channel: DMChannel | VoiceChannel | TextChannel,
+    ):
+        # Simulate typing.
+        async with channel.typing():
+            await asyncio.sleep(message_type_penalty)
+        await channel.send(msg)
+
     async def send_message(self, channel_id: int, msg: str):
         """
         Simulate Ralsei actually typing a message.
@@ -166,19 +195,39 @@ class RalseiBot(Bot):
             text_channel: TextChannel = channel
             ralsei_bot_logger.info("Sending message: %s, Ralsei is typing!", msg)
 
-            # Simulate typing.
-            async with text_channel.typing():
-                await asyncio.sleep(message_type_penalty)
-            await text_channel.send(msg)
+            await self.start_typing(msg, message_type_penalty, text_channel)
+
+    async def send_message_defined(
+        self, channel: DMChannel | TextChannel | VoiceChannel, msg: str
+    ):
+        """
+        This sends a message to the specified channel, but the channel argument is DEFINED.
+        :param channel: The channel itself.
+        :param msg: The message to send.
+        """
+        message_type_penalty = msg.__len__() / MESSAGE_TYPE_DIVISION
+
+        if channel:
+            ralsei_bot_logger.info("Sending message: %s, Ralsei is typing!", msg)
+            await self.start_typing(msg, message_type_penalty, channel)
 
     async def on_ready(self):
-        await self.register_cog(RalseiActiveCog)
-        await self.register_cog(MemberSecurityCog)
+        # Register all the cogs to the bot.
+        # The Registry is automatic, so all the cogs will get registered quickly.
+        for _, cog_obj in inspect.getmembers(sys.modules[__name__]):
+            if inspect.isclass(cog_obj) and issubclass(cog_obj, Cog) and cog_obj != Cog:
+                await self.register_cog(cog_obj)
 
         async for guild in self.fetch_guilds(limit=None):
             # Check if the specified server exists in the database, if it doesn't, add it to the listing.
             if not self.database_manager.check_if_server_exists(guild.id):
                 await self.check_guild(guild)
+
+            self.tree.copy_global_to(guild=guild)
+            ralsei_bot_logger.info("Copied commands to guild: %s", guild.name)
+
+        await self.tree.sync()
+        ralsei_bot_logger.info("Successfully synced all commands, bot is initialized!")
 
     async def on_message(self, message: Message) -> None:
         if message.author.bot:
@@ -206,7 +255,7 @@ class RalseiBot(Bot):
         if (
             profanity.contains_profanity(content_clean)
             and not channel_is_serious  # If the channel is not the serious channel, then the delete action will be taken.
-            and not message.author.id == int(os.environ["TRUSTED_USER"])
+            and not message.author.id == get_trusted_id()
         ):
             reply_msg = await reply_message(
                 self.data_manager.get_data_by_key_rand("scold"), message

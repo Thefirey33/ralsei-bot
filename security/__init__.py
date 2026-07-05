@@ -52,7 +52,12 @@ async def ban_member(
     )
 
 
-def unban_member(
-    ralsei_bot, database_manager: RalseiBotDatabaseManager, member: discord.Member
-):
-    pass
+async def unban_member(ralsei_bot, member: discord.Member, reason: str):
+    # Alert the user that they've been unbanned!
+
+    dm_channel_ref = member.dm_channel
+    if not dm_channel_ref:
+        dm_channel_ref = await member.create_dm()
+
+    await ralsei_bot.send_message_defined(member.dm_channel, "You've been unbanned!!!")
+    await member.unban(reason=reason)

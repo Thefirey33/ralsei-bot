@@ -1,5 +1,7 @@
 from datetime import timedelta, timezone
 
+from better_profanity.utils import os
+
 active_timezone = timezone(offset=timedelta(hours=3), name="Europe/Istanbul")
 """
 The active timezone of Ralsei. Which is Thefirey33's timezone.
@@ -26,3 +28,11 @@ PAT_PAT_TYPES = ["patpat", "petpet", "pat", "pet"]
 """
 When petpeting the rals, these are the responses that the bot expects.
 """
+
+
+def get_trusted_id():
+    """
+    Get the trusted user's ID.
+    :return Trusted id.
+    """
+    return int(os.environ["TRUSTED_USER"])
