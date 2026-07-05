@@ -1,4 +1,5 @@
-# Ignore
-
+# General Ignores.
 .env
 .venv
+# Ignore the database file, so the bot session create it itself.
+bot_information.db
