@@ -4,8 +4,8 @@ from discord import Member
 from discord.ext.commands import Cog
 
 from bot import RalseiBotDatabaseManager
-from definitions import active_timezone, ONE_YEAR
-from funsies import simulate_ralsei_wake, simulate_ralsei_sleep, apply_sleep
+from definitions import ONE_YEAR, active_timezone
+from funsies import apply_sleep, simulate_ralsei_sleep, simulate_ralsei_wake
 from logsystem import ralsei_bot_logger
 from security import kick_member
 
@@ -21,7 +21,9 @@ class MemberSecurityCog(Cog):
 
     @Cog.listener()
     async def on_member_join(self, member: Member):
-        time_diff = datetime.now().replace(tzinfo=active_timezone) - member.created_at.replace(tzinfo=active_timezone)
+        time_diff = datetime.now().replace(
+            tzinfo=active_timezone
+        ) - member.created_at.replace(tzinfo=active_timezone)
 
         db_manager: RalseiBotDatabaseManager = self.bot.database_manager
 
@@ -51,7 +53,10 @@ class MemberSecurityCog(Cog):
 
         await apply_sleep()
         await simulate_ralsei_wake(self.bot)
-        await self.bot.send_message(server_info.general_channel,
-                                    self.bot.data_manager.get_data_by_key_rand("introduction").format(
-                                        member.mention))
+        await self.bot.send_message(
+            server_info.general_channel,
+            self.bot.data_manager.get_data_by_key_rand("introduction").format(
+                member.mention
+            ),
+        )
         await simulate_ralsei_sleep(self.bot)

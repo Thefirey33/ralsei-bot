@@ -9,12 +9,14 @@ import random
 import discord
 from discord import Status
 
-from definitions import BACK_TO_SLEEP_RANDOMIZER_START, BACK_TO_SLEEP_RANDOMIZER_END
+from definitions import BACK_TO_SLEEP_RANDOMIZER_END, BACK_TO_SLEEP_RANDOMIZER_START
 from logsystem import ralsei_bot_logger
 
 
 async def apply_sleep():
-    await asyncio.sleep(random.randint(BACK_TO_SLEEP_RANDOMIZER_START, BACK_TO_SLEEP_RANDOMIZER_END))
+    await asyncio.sleep(
+        random.randint(BACK_TO_SLEEP_RANDOMIZER_START, BACK_TO_SLEEP_RANDOMIZER_END)
+    )
 
 
 async def simulate_ralsei_wake(ralsei_bot):
@@ -27,8 +29,10 @@ async def simulate_ralsei_wake(ralsei_bot):
         return
 
     ralsei_bot_logger.info("Waking up Ralsei...")
-    await ralsei_bot.change_presence(status=Status.online,
-                                     activity=discord.Game(name="*woke up because got notified*"))
+    await ralsei_bot.change_presence(
+        status=Status.online,
+        activity=discord.Game(name="*woke up because got notified*"),
+    )
     await apply_sleep()
 
 
@@ -44,4 +48,6 @@ async def simulate_ralsei_sleep(ralsei_bot):
     await apply_sleep()
     ralsei_bot_logger.info("Sleeping Ralsei...")
     # After finishing the Easter Egg, continue sleepin'.
-    await ralsei_bot.change_presence(status=Status.idle, activity=discord.Game(name="*fluffy boi is asleep again*"))
+    await ralsei_bot.change_presence(
+        status=Status.idle, activity=discord.Game(name="*fluffy boi is asleep again*")
+    )

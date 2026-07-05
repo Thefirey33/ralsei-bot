@@ -1,17 +1,17 @@
 import asyncio
 import os
-from datetime import time, datetime
+from datetime import datetime, time
 
 import discord
 from better_profanity import profanity
-from discord import Intents, Status, TextChannel, Guild, Message
+from discord import Guild, Intents, Message, Status, TextChannel
 from discord.ext.commands import Bot, Cog
 from discord.ext.tasks import loop
 
 from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager, RalseiBotDatabaseModal
-from definitions import active_timezone, MESSAGE_TYPE_DIVISION
-from funsies import simulate_ralsei_wake, simulate_ralsei_sleep
+from definitions import MESSAGE_TYPE_DIVISION, PAT_PAT_TYPES, active_timezone
+from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
 from logsystem import ralsei_bot_logger
 from security.member_security import MemberSecurityCog
 
@@ -33,10 +33,12 @@ class RalseiActiveCog(Cog):
         current_time = datetime.now(active_timezone)
 
         # This is when the Ralsei bot is sleeping.
-        if current_time.hour >= ending_time.hour or current_time.hour < beginning_time.hour:
+        if (
+            current_time.hour >= ending_time.hour
+            or current_time.hour < beginning_time.hour
+        ):
             await self.ralsei_bot.change_presence(
-                status=Status.idle,
-                activity=discord.Game(name="*fluffy boi is asleep*")
+                status=Status.idle, activity=discord.Game(name="*fluffy boi is asleep*")
             )
             self.ralsei_bot.awake = False
 
@@ -44,19 +46,19 @@ class RalseiActiveCog(Cog):
             self.ralsei_bot.awake = True
             await self.ralsei_bot.change_presence(
                 status=Status.online,
-                activity=discord.Game(name="*fluffy boi is chillin'*")
+                activity=discord.Game(name="*fluffy boi is chillin'*"),
             )
 
         ralsei_bot_logger.info("Ralsei's awakeness state has been updated.")
 
-    def __init__(self, ralsei_bot: RalseiBot):
-        self.ralsei_bot = ralsei_bot
+    def __init__(self, ralsei_bot):
+        self.ralsei_bot: RalseiBot = ralsei_bot
 
         # Create the specified tasks.
         asyncio.create_task(self.update_bot_presence(), eager_start=True)
         self.bot_hibernation_state.start()
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self):
         self.bot_hibernation_state.cancel()
 
     @loop(time=[beginning_time, ending_time])
@@ -93,16 +95,21 @@ class RalseiBot(Bot):
     """
 
     def __init__(self):
-        super().__init__(command_prefix="pls", intents=Intents.all(), status=Status.offline)
+        super().__init__(
+            command_prefix="pls", intents=Intents.all(), status=Status.offline
+        )
         self.database_manager = RalseiBotDatabaseManager()
         self.data_manager = RalseiDataManager()
-        profanity.load_censor_words(self.data_manager.get_data_by_key("serious_discussion_words"))
+        profanity.load_censor_words(
+            self.data_manager.get_data_by_key("serious_discussion_words")
+        )
 
     async def check_guild(self, guild: Guild):
         ralsei_bot_logger.info("Checking guild: %s...", guild.name)
         channels = await guild.fetch_channels()
-        text_channels: list[TextChannel] = list(
-            filter(lambda channel: isinstance(channel, discord.TextChannel), channels))
+        text_channels: list = list(
+            filter(lambda channel: isinstance(channel, discord.TextChannel), channels)
+        )
 
         def search_channel(name_match: str):
             """
@@ -110,7 +117,12 @@ class RalseiBot(Bot):
             :param name_match: The name match to search for, it will search if the specified channel contains it.
             :return: The channel found, might be null.
             """
-            return next(filter(lambda channel: channel.name.__contains__(name_match), text_channels), None)
+            return next(
+                filter(
+                    lambda channel: channel.name.__contains__(name_match), text_channels
+                ),
+                None,
+            )
 
         # The specified channels that the bot will search for,
         # Since these already exist in my server, we are in the clear.
@@ -120,10 +132,17 @@ class RalseiBot(Bot):
 
         if general_channel and moderation_channel and ralsei_channel:
             self.database_manager.add_server_to_database(
-                RalseiBotDatabaseModal(guild.id, general_channel.id, ralsei_channel.id,
-                                       moderation_channel.id))
+                RalseiBotDatabaseModal(
+                    guild.id,
+                    general_channel.id,
+                    ralsei_channel.id,
+                    moderation_channel.id,
+                )
+            )
         else:
-            ralsei_bot_logger.warning("Couldn't auto-configure for server with id: %s.", guild.id)
+            ralsei_bot_logger.warning(
+                "Couldn't auto-configure for server with id: %s.", guild.id
+            )
 
     async def register_cog(self, cog):
         """
@@ -143,13 +162,14 @@ class RalseiBot(Bot):
 
         message_type_penalty = msg.__len__() / MESSAGE_TYPE_DIVISION
         channel = await self.fetch_channel(channel_id)
-        if channel:
+        if channel and isinstance(channel, TextChannel):
+            text_channel: TextChannel = channel
             ralsei_bot_logger.info("Sending message: %s, Ralsei is typing!", msg)
 
             # Simulate typing.
-            async with channel.typing():
+            async with text_channel.typing():
                 await asyncio.sleep(message_type_penalty)
-            await channel.send(msg)
+            await text_channel.send(msg)
 
     async def on_ready(self):
         await self.register_cog(RalseiActiveCog)
@@ -161,7 +181,7 @@ class RalseiBot(Bot):
                 await self.check_guild(guild)
 
     async def on_message(self, message: Message) -> None:
-        if message.author.bot or message.author.id == int(os.environ["TRUSTED_USER"]):
+        if message.author.bot:
             return
 
         # If something that is out of line is said, Ralsei is instructed to immediately purge the message.
@@ -170,19 +190,36 @@ class RalseiBot(Bot):
 
         # Profanity detection.
         content_clean = message.clean_content
+
+        # To stop the language server from bitching.
+        if not isinstance(message.channel, TextChannel) or not self.user:
+            return
+
         channel_is_serious = message.channel.name.__contains__("serious")
-        
-        if profanity.contains_profanity(content_clean) and not channel_is_serious:
-            reply_msg = await reply_message(self.data_manager.get_data_by_key_rand("scold"), message)
+
+        # Split the message into each word, so we can detect if the user has pat-patted ralsei.
+        msg_action_split = message.clean_content.split()
+        detect_action = any(
+            map(lambda x: PAT_PAT_TYPES.__contains__(x), msg_action_split)
+        )
+
+        if (
+            profanity.contains_profanity(content_clean)
+            and not channel_is_serious  # If the channel is not the serious channel, then the delete action will be taken.
+            and not message.author.id == int(os.environ["TRUSTED_USER"])
+        ):
+            reply_msg = await reply_message(
+                self.data_manager.get_data_by_key_rand("scold"), message
+            )
 
             # Delete the message, then move on.
             await message.delete(delay=2)
             await reply_msg.delete(delay=2)
-        elif message.mentions.__contains__(self.user) and not channel_is_serious:
-            if message.content.__contains__(
-                    "patpat") or message.content.__contains__("petpet"):
-                await reply_message(self.data_manager.get_data_by_key_rand("pleasant_reactions"), message)
-            else:
-                await reply_message(self.data_manager.get_data_by_key_rand("other_introduction"), message)
+
+        elif message.mentions.__contains__(self.user) and detect_action:
+            await reply_message(
+                self.data_manager.get_data_by_key_rand("pleasant_reactions"),
+                message,
+            )
 
         await simulate_ralsei_sleep(self)

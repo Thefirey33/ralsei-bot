@@ -15,15 +15,23 @@ class RalseiBotDatabaseModal:
     ralsei_channel: int
     moderation_channel: int
 
-    def __init__(self, server_id: int, general_channel: int, ralsei_channel: int, moderation_channel: int):
+    def __init__(
+        self,
+        server_id: int,
+        general_channel: int,
+        ralsei_channel: int,
+        moderation_channel: int,
+    ):
         self.server_id = server_id
         self.general_channel = general_channel
         self.ralsei_channel = ralsei_channel
         self.moderation_channel = moderation_channel
 
     @classmethod
-    def tuple_to_modal(cls, modal_tuple: tuple[int, int, int, int]) -> RalseiBotDatabaseModal:
-        return RalseiBotDatabaseModal(modal_tuple[0], modal_tuple[1], modal_tuple[2], modal_tuple[3])
+    def tuple_to_modal(cls, modal_tuple: tuple[int, int, int, int]):
+        return RalseiBotDatabaseModal(
+            modal_tuple[0], modal_tuple[1], modal_tuple[2], modal_tuple[3]
+        )
 
     def __str__(self):
         """
@@ -44,8 +52,10 @@ class RalseiBotDatabaseManager:
         """
         Creates a blank table for all the servers to be appended in.
         """
-        self.cur.execute('CREATE TABLE bot_database(server_id, general_channel, ralsei_channel, moderation_channel);')
-        self.cur.execute('CREATE TABLE allowed_entry(id);')
+        self.cur.execute(
+            "CREATE TABLE bot_database(server_id, general_channel, ralsei_channel, moderation_channel);"
+        )
+        self.cur.execute("CREATE TABLE allowed_entry(id);")
         self.db.commit()
 
     def check_if_server_exists(self, server_id: int):
@@ -54,7 +64,9 @@ class RalseiBotDatabaseManager:
         :param server_id: The server to check.
         :return: If the server exists.
         """
-        result = self.cur.execute('SELECT count(*) FROM bot_database WHERE server_id = ?', [server_id])
+        result = self.cur.execute(
+            "SELECT count(*) FROM bot_database WHERE server_id = ?", [server_id]
+        )
         return result.fetchone()[0] > 0
 
     def add_allowed(self, member_id: int):
@@ -62,7 +74,7 @@ class RalseiBotDatabaseManager:
         Adds a listing where the specified member is allowed to enter the server.
         :param member_id: The member with the specified id.
         """
-        self.cur.execute('INSERT INTO allowed_entry(id) VALUES (?)', [member_id])
+        self.cur.execute("INSERT INTO allowed_entry(id) VALUES (?)", [member_id])
         self.db.commit()
 
     def is_member_allowed(self, member_id: int) -> bool:
@@ -71,11 +83,15 @@ class RalseiBotDatabaseManager:
         :param member_id: The member with the specified ID.
         :return: If the member is allowed to join the server.
         """
-        result = self.cur.execute('SELECT * FROM allowed_entry WHERE id = ?', [member_id])
+        result = self.cur.execute(
+            "SELECT * FROM allowed_entry WHERE id = ?", [member_id]
+        )
         return result.fetchone() is not None
 
     def get_server_information(self, server_id: int) -> RalseiBotDatabaseModal | None:
-        result = self.cur.execute('SELECT * FROM bot_database WHERE server_id = ?', [server_id])
+        result = self.cur.execute(
+            "SELECT * FROM bot_database WHERE server_id = ?", [server_id]
+        )
         fetched_result = result.fetchone()
 
         if fetched_result is None:
@@ -83,17 +99,24 @@ class RalseiBotDatabaseManager:
         return RalseiBotDatabaseModal.tuple_to_modal(fetched_result)
 
     def add_server_to_database(self, modal: RalseiBotDatabaseModal):
-        database_logger.info("Committing server %s's information to database...", modal.server_id)
-        self.cur.execute('INSERT INTO bot_database VALUES (?, ?, ?, ?);', [
-            modal.server_id,
-            modal.general_channel,
-            modal.ralsei_channel,
-            modal.moderation_channel
-        ])
+        database_logger.info(
+            "Committing server %s's information to database...", modal.server_id
+        )
+        self.cur.execute(
+            "INSERT INTO bot_database VALUES (?, ?, ?, ?);",
+            [
+                modal.server_id,
+                modal.general_channel,
+                modal.ralsei_channel,
+                modal.moderation_channel,
+            ],
+        )
         self.db.commit()
 
     def fetch_total_table_count_in_db(self):
-        result = self.cur.execute('SELECT count(*) FROM sqlite_master WHERE type=\'table\';')
+        result = self.cur.execute(
+            "SELECT count(*) FROM sqlite_master WHERE type='table';"
+        )
         self.total_count = result.fetchone()[0]
 
     def __init__(self):

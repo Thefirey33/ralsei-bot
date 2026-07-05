@@ -1,4 +1,4 @@
-from datetime import timezone, timedelta
+from datetime import timedelta, timezone
 
 active_timezone = timezone(offset=timedelta(hours=3), name="Europe/Istanbul")
 """
@@ -21,4 +21,8 @@ Randomizer ending value for the back to sleep timer.
 MESSAGE_TYPE_DIVISION = 20
 """
 The second divide for the typing effect to be real.
+"""
+PAT_PAT_TYPES = ["patpat", "petpet", "pat", "pet"]
+"""
+When petpeting the rals, these are the responses that the bot expects.
 """
