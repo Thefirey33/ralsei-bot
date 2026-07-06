@@ -8,6 +8,7 @@ from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager
 from definitions import MESSAGE_TYPE_DIVISION, get_trusted_id
 from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
+from logsystem import ralsei_bot_logger
 from security import ban_member, kick_member
 
 
@@ -95,8 +96,8 @@ class GeneralCommands(Cog):
         )
         async def response(
             interaction: discord.Interaction,
-            channel_id: int,
-            message_id: int,
+            channel_id: str,
+            message_id: str,
             message: str,
         ):
             if interaction.user.id != get_trusted_id():
@@ -106,15 +107,20 @@ class GeneralCommands(Cog):
                 )
                 return
 
-            if not interaction.guild:
+            if not (channel_id.isnumeric() or message_id.isnumeric()):
+                ralsei_bot_logger.warning("ID error, skipping response...")
                 return
 
-            channel = await interaction.guild.fetch_channel(channel_id)
+            if not interaction.guild:
+                ralsei_bot_logger.warning("Guild doesn't exist, skipping response...")
+                return
+
+            channel = await interaction.guild.fetch_channel(int(channel_id))
 
             if not isinstance(channel, discord.TextChannel):
                 return
 
-            msg = await channel.fetch_message(message_id)
+            msg = await channel.fetch_message(int(message_id))
 
             await simulate_ralsei_wake(self.bot)
             await self.bot.reply_message(message, msg)
