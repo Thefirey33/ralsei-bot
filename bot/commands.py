@@ -7,6 +7,7 @@ from discord.ext.commands.hybrid import app_commands
 from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager
 from definitions import MESSAGE_TYPE_DIVISION, get_trusted_id
+from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
 from security import ban_member, kick_member
 
 
@@ -116,4 +117,6 @@ class GeneralCommands(Cog):
 
             msg = await channel.fetch_message(message_id)
 
+            await simulate_ralsei_wake(self.bot)
             await self.bot.reply_message(message, msg)
+            await simulate_ralsei_sleep(self.bot)
