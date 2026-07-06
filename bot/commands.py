@@ -122,4 +122,3 @@ class GeneralCommands(Cog):
             await simulate_ralsei_wake(self.bot)
             await self.bot.reply_message(message, msg)
             await simulate_ralsei_sleep(self.bot)
-            await interaction.response.send_message(content="Okay.", ephemeral=True)
