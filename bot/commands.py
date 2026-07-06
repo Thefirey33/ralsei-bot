@@ -4,6 +4,7 @@ import discord
 from discord.ext.commands import Cog
 from discord.ext.commands.hybrid import app_commands
 
+from bot import reply_message
 from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager
 from definitions import MESSAGE_TYPE_DIVISION, get_trusted_id
@@ -123,7 +124,7 @@ class GeneralCommands(Cog):
             msg = await channel.fetch_message(int(message_id))
 
             await simulate_ralsei_wake(self.bot)
-            await self.bot.reply_message(message, msg)
+            await reply_message(message, msg)
             await simulate_ralsei_sleep(self.bot)
 
             await interaction.response.send_message(content="Okay.", ephemeral=True)
