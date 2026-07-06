@@ -41,7 +41,7 @@ class GeneralCommands(Cog):
             user_id="The User ID of the member you want to approve entry for."
         )
         async def add_entry(interaction: discord.Interaction, user_id: str):
-            if not privilege_check(interaction):
+            if not await privilege_check(interaction):
                 return
 
             # Add to the approved list.
