@@ -93,7 +93,7 @@ class GeneralCommands(Cog):
         async def send_response(interaction: discord.Interaction):
             try:
                 # Attempt to respond.
-                await interaction.response.send_message("Done", ephemeral=True)
+                await interaction.response.send_message("Done!!", ephemeral=True)
             except:
                 ralsei_bot_logger.info("Cannot send response!")
             
