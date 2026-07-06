@@ -40,12 +40,12 @@ class GeneralCommands(Cog):
         @app_commands.describe(
             user_id="The User ID of the member you want to approve entry for."
         )
-        async def add_entry(interaction: discord.Interaction, user_id: int):
+        async def add_entry(interaction: discord.Interaction, user_id: str):
             if not privilege_check(interaction):
                 return
 
             # Add to the approved list.
-            self.db_manager.add_allowed(user_id)
+            self.db_manager.add_allowed(int(user_id))
             await interaction.response.send_message(
                 "<:ralsei_happy:1522702707872239646> approved entry for them!!",
                 ephemeral=True,
