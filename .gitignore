@@ -1,5 +1,6 @@
 # General Ignores.
 .env
 .venv
+__pycache__
 # Ignore the database file, so the bot session create it itself.
 bot_information.db

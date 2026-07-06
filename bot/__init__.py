@@ -17,6 +17,7 @@ from discord import (
 from discord.ext.commands import Bot, Cog
 from discord.ext.tasks import loop
 
+from bot.commands import GeneralCommands
 from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager, RalseiBotDatabaseModal
 from definitions import (
@@ -28,7 +29,6 @@ from definitions import (
 from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
 from logsystem import ralsei_bot_logger
 from security.member_security import MemberSecurityCog
-from bot.commands import GeneralCommands
 
 # NOTE: If you remove this line, the language server will start bitching. So don't.
 __all__ = ["MemberSecurityCog", "GeneralCommands"]
@@ -88,23 +88,6 @@ class RalseiActiveCog(Cog):
         await self.update_bot_presence()
 
 
-async def reply_message(msg: str, message: Message):
-    """
-    Simulate Ralsei actually typing a message.
-    :param message: The message to reply to.
-    :param msg: The message to send.
-    """
-
-    message_type_penalty = msg.__len__() / MESSAGE_TYPE_DIVISION
-    channel = message.channel
-    ralsei_bot_logger.info("Sending message: %s, Ralsei is typing!", msg)
-
-    # Simulate typing.
-    async with channel.typing():
-        await asyncio.sleep(message_type_penalty)
-    return await message.reply(msg)
-
-
 class RalseiBot(Bot):
     awake: bool
     """
@@ -160,6 +143,22 @@ class RalseiBot(Bot):
             ralsei_bot_logger.warning(
                 "Couldn't auto-configure for server with id: %s.", guild.id
             )
+
+    async def reply_message(self, msg: str, message: Message):
+        """
+        Simulate Ralsei actually typing a message.
+        :param message: The message to reply to.
+        :param msg: The message to send.
+        """
+
+        message_type_penalty = msg.__len__() / MESSAGE_TYPE_DIVISION
+        channel = message.channel
+        ralsei_bot_logger.info("Sending message: %s, Ralsei is typing!", msg)
+
+        # Simulate typing.
+        async with channel.typing():
+            await asyncio.sleep(message_type_penalty)
+            return await message.reply(msg)
 
     async def register_cog(self, cog):
         """
@@ -256,7 +255,7 @@ class RalseiBot(Bot):
             and not channel_is_serious  # If the channel is not the serious channel, then the delete action will be taken.
             and not message.author.id == get_trusted_id()
         ):
-            reply_msg = await reply_message(
+            reply_msg = await self.reply_message(
                 self.data_manager.get_data_by_key_rand("scold"), message
             )
 
@@ -265,7 +264,7 @@ class RalseiBot(Bot):
             await reply_msg.delete(delay=2)
 
         elif message.mentions.__contains__(self.user) and detect_action:
-            await reply_message(
+            await self.reply_message(
                 self.data_manager.get_data_by_key_rand("pleasant_reactions"),
                 message,
             )

@@ -1,6 +1,6 @@
 import discord
 
-from bot import RalseiBotDatabaseManager
+from bot.database_manager import RalseiBotDatabaseManager
 from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
 from logsystem import ralsei_bot_logger
 

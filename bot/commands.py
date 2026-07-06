@@ -1,13 +1,10 @@
-from typing import Text
-
 import discord
 from discord.ext.commands import Cog
 from discord.ext.commands.hybrid import app_commands
 
-from bot import reply_message
 from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager
-from definitions import MESSAGE_TYPE_DIVISION, get_trusted_id
+from definitions import get_trusted_id
 from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
 from logsystem import ralsei_bot_logger
 from security import ban_member, kick_member
@@ -122,9 +119,7 @@ class GeneralCommands(Cog):
                 return
 
             msg = await channel.fetch_message(int(message_id))
-
             await simulate_ralsei_wake(self.bot)
-            await reply_message(message, msg)
+            await self.bot.reply_message(message, msg)
             await simulate_ralsei_sleep(self.bot)
-
             await interaction.response.send_message(content="Okay.", ephemeral=True)
