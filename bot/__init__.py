@@ -28,10 +28,10 @@ from definitions import (
 from funsies import simulate_ralsei_sleep, simulate_ralsei_wake
 from logsystem import ralsei_bot_logger
 from security.member_security import MemberSecurityCog
-from security.moderation_commands import ModerationCommands
+from bot.commands import GeneralCommands
 
 # NOTE: If you remove this line, the language server will start bitching. So don't.
-__all__ = ["MemberSecurityCog", "ModerationCommands"]
+__all__ = ["MemberSecurityCog", "GeneralCommands"]
 
 # This is the time defined where Ralsei 'wakes up'
 beginning_time = time(hour=8, tzinfo=active_timezone)

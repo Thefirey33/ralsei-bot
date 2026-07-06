@@ -1,14 +1,16 @@
+from typing import Text
+
 import discord
 from discord.ext.commands import Cog
 from discord.ext.commands.hybrid import app_commands
 
 from bot.data import RalseiDataManager
 from bot.database_manager import RalseiBotDatabaseManager
-from definitions import get_trusted_id
+from definitions import MESSAGE_TYPE_DIVISION, get_trusted_id
 from security import ban_member, kick_member
 
 
-class ModerationCommands(Cog):
+class GeneralCommands(Cog):
     """
     All the moderation commands for the bot.
     """
@@ -86,3 +88,32 @@ class ModerationCommands(Cog):
                 "gone forever? well... bye to them...", ephemeral=True
             )
             await ban_member(self.bot, self.db_manager, member, reason=reason)
+
+        @self.bot.tree.command(
+            name="response", description="Create a response to message."
+        )
+        async def response(
+            self,
+            interaction: discord.Interaction,
+            channel_id: int,
+            message_id: int,
+            message: str,
+        ):
+            if interaction.user.id != get_trusted_id():
+                # If the user attempts to execute the allow entry command without authorization, Ralsei will refuse to do so.
+                await interaction.response.send_message(
+                    self.data_manager.get_data_by_key_rand("scold")
+                )
+                return
+
+            if not interaction.guild:
+                return
+
+            channel = await interaction.guild.fetch_channel(channel_id)
+
+            if not isinstance(channel, discord.TextChannel):
+                return
+
+            msg = await channel.fetch_message(message_id)
+
+            await self.bot.reply_message(message, msg)
