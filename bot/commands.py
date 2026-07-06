@@ -94,7 +94,6 @@ class GeneralCommands(Cog):
             name="response", description="Create a response to message."
         )
         async def response(
-            self,
             interaction: discord.Interaction,
             channel_id: int,
             message_id: int,
