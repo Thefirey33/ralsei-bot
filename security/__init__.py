@@ -25,7 +25,7 @@ async def general_action(
     # Send message to the moderation channel.
     await ralsei_bot.send_message(
         server_info.moderation_channel,
-        f"<:ralsei_sad:1523124485010489607> kicked {member.name} because their {reason}...",
+        f"<:ralsei_sad:1523124485010489607> {action_type == "kicked" and "kicked" or "banned"} {member.name} because their {reason}...",
     )
     await simulate_ralsei_sleep(ralsei_bot)
 
