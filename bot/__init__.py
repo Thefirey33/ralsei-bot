@@ -56,7 +56,7 @@ class RalseiActiveCog(Cog):
             if not server_info:
                 return
 
-            channel = guild.fetch_channel(server_info.ralsei_channel)
+            channel = await guild.fetch_channel(server_info.ralsei_channel)
             if not isinstance(channel, TextChannel):
                 return
 
@@ -64,7 +64,7 @@ class RalseiActiveCog(Cog):
 
 
 
-    async def update_bot_presence(self):
+    async def update_bot_presence(self, initial_send: bool = False):
         current_time = datetime.now(active_timezone)
 
         # This is when the Ralsei bot is sleeping.
@@ -76,14 +76,18 @@ class RalseiActiveCog(Cog):
                 status=Status.idle, activity=discord.Game(name="*fluffy boi is asleep*")
             )
             self.ralsei_bot.awake = False
-            await self.send_message_to_all_guilds(gif_sources["sleep"])
+
+            if not initial_send:
+                await self.send_message_to_all_guilds(gif_sources["sleep"])
         elif current_time.hour >= beginning_time.hour:
             self.ralsei_bot.awake = True
             await self.ralsei_bot.change_presence(
                 status=Status.online,
                 activity=discord.Game(name="*fluffy boi is chillin'*"),
             )
-            await self.send_message_to_all_guilds(gif_sources["awake"])
+
+            if not initial_send:
+                await self.send_message_to_all_guilds(gif_sources["awake"])
 
         ralsei_bot_logger.info("Ralsei's awakeness state has been updated.")
 
@@ -91,7 +95,7 @@ class RalseiActiveCog(Cog):
         self.ralsei_bot: RalseiBot = ralsei_bot
 
         # Create the specified tasks.
-        asyncio.create_task(self.update_bot_presence(), eager_start=True)
+        asyncio.create_task(self.update_bot_presence(initial_send=True), eager_start=True)
         self.bot_hibernation_state.start()
 
     async def cog_unload(self):
