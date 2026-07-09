@@ -72,22 +72,20 @@ class RalseiActiveCog(Cog):
             current_time.hour >= ending_time.hour
             or current_time.hour < beginning_time.hour
         ):
+            if not initial_send:
+                await self.send_message_to_all_guilds(gif_sources["sleep"])
             await self.ralsei_bot.change_presence(
                 status=Status.idle, activity=discord.Game(name="*fluffy boi is asleep*")
             )
             self.ralsei_bot.awake = False
-
-            if not initial_send:
-                await self.send_message_to_all_guilds(gif_sources["sleep"])
         elif current_time.hour >= beginning_time.hour:
+            if not initial_send:
+                await self.send_message_to_all_guilds(gif_sources["awake"])
             self.ralsei_bot.awake = True
             await self.ralsei_bot.change_presence(
                 status=Status.online,
                 activity=discord.Game(name="*fluffy boi is chillin'*"),
             )
-
-            if not initial_send:
-                await self.send_message_to_all_guilds(gif_sources["awake"])
 
         ralsei_bot_logger.info("Ralsei's awakeness state has been updated.")
 
