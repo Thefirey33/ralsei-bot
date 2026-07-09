@@ -88,23 +88,23 @@ class GeneralCommands(Cog):
                 "gone forever? well... bye to them...", ephemeral=True
             )
             await ban_member(self.bot, self.db_manager, member, reason=reason)
-        
+
         # Attempt to send a response when Thefirey33 wants the bot to say something.
         async def send_response(interaction: discord.Interaction):
             try:
                 # Attempt to respond.
                 await interaction.response.send_message("Done!!", ephemeral=True)
-            except:
+            except discord.HTTPException:
                 ralsei_bot_logger.info("Cannot send response!")
-            
+
         #
         # Send a message.
         #
-        
+
         @self.bot.tree.command(
             name="send", description="Send a message to a channel."
         )
-        async def response(
+        async def send(
             interaction: discord.Interaction,
             channel: discord.TextChannel,
             message: str,
@@ -115,18 +115,18 @@ class GeneralCommands(Cog):
             if not interaction.guild:
                 ralsei_bot_logger.warning("Guild doesn't exist, skipping response...")
                 return
-            
+
             await send_response(interaction)
             await simulate_ralsei_wake(self.bot)
-            
+
             await self.bot.send_message(channel.id, message)
-            
+
             await simulate_ralsei_sleep(self.bot)
 
         #
         # Response.
         #
-        
+
         @self.bot.tree.command(
             name="response", description="Create a response to message."
         )
@@ -148,10 +148,10 @@ class GeneralCommands(Cog):
                 return
 
             msg = await channel.fetch_message(int(message_id))
-        
+
             await send_response(interaction)
             await simulate_ralsei_wake(self.bot)
-            
+
             await self.bot.reply_message(message, msg)
-            
+
             await simulate_ralsei_sleep(self.bot)

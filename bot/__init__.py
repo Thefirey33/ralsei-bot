@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import json
 import sys
 from datetime import datetime, time
 
@@ -39,6 +40,8 @@ beginning_time = time(hour=8, tzinfo=active_timezone)
 # This is the time defined where Ralsei 'sleeps'.
 ending_time = time(hour=23, tzinfo=active_timezone)
 
+gif_sources: dict[str, str] = json.load(open("sleep_and_awake_source.json"))
+ralsei_bot_logger.info("Imported gif sources as %s", gif_sources)
 
 class RalseiActiveCog(Cog):
     """
@@ -46,6 +49,20 @@ class RalseiActiveCog(Cog):
     In the GMT + 3 timezone cycle, it allows Ralsei to go IDLE or ONLINE.
     Along with simulating that Ralsei might be watching some random shows during the day.
     """
+
+    async def send_message_to_all_guilds(self, msg: str):
+        async for guild in self.ralsei_bot.fetch_guilds():
+            server_info = self.ralsei_bot.database_manager.get_server_information(guild.id)
+            if not server_info:
+                return
+
+            channel = guild.fetch_channel(server_info.ralsei_channel)
+            if not isinstance(channel, TextChannel):
+                return
+
+            await self.ralsei_bot.send_message_defined(channel, msg)
+
+
 
     async def update_bot_presence(self):
         current_time = datetime.now(active_timezone)
@@ -59,12 +76,14 @@ class RalseiActiveCog(Cog):
                 status=Status.idle, activity=discord.Game(name="*fluffy boi is asleep*")
             )
             self.ralsei_bot.awake = False
+            await self.send_message_to_all_guilds(gif_sources["sleep"])
         elif current_time.hour >= beginning_time.hour:
             self.ralsei_bot.awake = True
             await self.ralsei_bot.change_presence(
                 status=Status.online,
                 activity=discord.Game(name="*fluffy boi is chillin'*"),
             )
+            await self.send_message_to_all_guilds(gif_sources["awake"])
 
         ralsei_bot_logger.info("Ralsei's awakeness state has been updated.")
 
