@@ -1,6 +1,5 @@
-# General Ignores.
-.env
-.venv
-__pycache__
-# Ignore the database file, so the bot session create it itself.
-bot_information.db
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/

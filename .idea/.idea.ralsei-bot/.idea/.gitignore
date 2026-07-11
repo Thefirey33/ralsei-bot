@@ -1,6 +1,11 @@
 # Default ignored files
 /shelf/
 /workspace.xml
+# Rider ignored files
+/.idea.ralsei-bot.iml
+/projectSettingsUpdater.xml
+/contentModel.xml
+/modules.xml
 # Editor-based HTTP Client requests
 /httpRequests/
 # Ignored default folder with query files
