@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using NetCord;
 using NetCord.Rest;
 using ralsei_bot_discord.Types;
+using ChannelType = ralsei_bot_discord.Types.ChannelType;
 
 namespace ralsei_bot_discord.Controllers;
 
@@ -20,11 +21,13 @@ public class GuildController(RestClient restClient) : ControllerBase
             .GetCurrentUserGuildsAsync()
             .ToListAsync();
 
-        var guildConversion = guilds.Select(guild => new GuildData
-        {
-            Id = guild.Id,
-            Name = guild.Name
-        }).ToList();
+        var guildConversion = guilds
+            .Where(guild => (guild.Permissions & Permissions.Administrator) != 0)
+            .Select(guild => new GuildData
+            {
+                Id = guild.Id,
+                Name = guild.Name
+            }).ToList();
 
         return Ok(guildConversion);
     }
@@ -41,12 +44,13 @@ public class GuildController(RestClient restClient) : ControllerBase
         // Filter all the channels to the ChannelData system.
         return Ok(
             fetchedChannels
-                .Where(channel => channel is not CategoryGuildChannel)
+                .Where(channel => channel is VoiceGuildChannel or TextChannel)
                 .Select(channel => new ChannelData
                 {
                     ChannelId = channel.Id,
                     ChannelName = channel.Name,
-                    GuildId = channel.GuildId
+                    GuildId = channel.GuildId,
+                    TypeChannel = channel is VoiceGuildChannel ? ChannelType.Voice : ChannelType.Text
                 })
                 .ToList());
     }

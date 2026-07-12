@@ -2,6 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace ralsei_bot_discord.Types;
 
+public enum ChannelType
+{
+    Text,
+    Voice,
+    Thread
+}
+
 public struct ChannelData
 {
     /// <summary>
@@ -19,6 +26,12 @@ public struct ChannelData
     /// <summary>
     ///     The ID of the guild that the channel is in.
     /// </summary>
-    [JsonPropertyName("guildId")]
+    [JsonPropertyName("guild_id")]
     public ulong GuildId { get; init; }
+
+    /// <summary>
+    ///     The type of the channel.
+    /// </summary>
+    [JsonPropertyName("channel_Type")]
+    public ChannelType TypeChannel { get; init; }
 }

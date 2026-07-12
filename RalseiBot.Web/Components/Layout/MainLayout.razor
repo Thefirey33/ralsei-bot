@@ -1,10 +1,14 @@
 ﻿@inherits LayoutComponentBase
+@attribute [StreamRendering]
 
-<h1 class="align-center">Ralsei Control Panel</h1>
+<h1 class="align-center">
+    <img src="@Assets["favicon.png"]" alt="Logo" width="32" height="32"/>
+    Ralsei Control Panel
+</h1>
 
 <div class="top-link-panel">
     <NavLink href="/">Home</NavLink>
-    <NavLink href="/Messaging">Messaging</NavLink>
+    <NavLink href="/Communication">Communication</NavLink>
     <NavLink href="/Moderation">Moderation</NavLink>
 </div>
 

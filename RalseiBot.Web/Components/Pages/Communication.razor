@@ -1,0 +1,143 @@
+@page "/Communication"
+@using System.Diagnostics
+@using ralsei_bot_discord.Types
+@using RalseiBot.Web.Components.Widgets
+@rendermode InteractiveServer
+@inject IHttpClientFactory ClientFactory
+@inject ILogger<Communication> Logger
+
+@code {
+
+    /// <summary>
+    ///     The HTTP Client connected to the bot.
+    /// </summary>
+    private HttpClient? _httpClient;
+
+    /// <summary>
+    ///     All the guilds that the bot can reference.
+    /// </summary>
+    private List<GuildData>? _guilds;
+
+    /// <summary>
+    ///     All the channels that the bot can reference.
+    /// </summary>
+    private List<ChannelData>? _channels;
+
+    /// <summary>
+    ///     The selected ID that the user has selected from the list.
+    /// </summary>
+    private string? _selectedId;
+
+    /// <summary>
+    ///     If the API is busy loading tasks, this boolean will be set to true.
+    /// </summary>
+    private bool _busyLoading = true;
+
+    /// <summary>
+    ///     When the bot initializes, initialize the first guild immediately.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        _httpClient = ClientFactory.CreateClient("RalseiBotBackend");
+
+        _busyLoading = true;
+
+        // Attempt to retrieve all guild data.
+        // While receiving the data, display the loading throbber for the user so they don't spam the API with too many requests,
+        // which would result in a rate limit.
+        _guilds = await _httpClient.GetFromJsonAsync<List<GuildData>>("Guild/all");
+        if (_guilds != null)
+            await CreateChannelsGuild(_guilds.First().Id);
+    }
+
+    /// <summary>
+    ///     Create the channels for the user to interact with.
+    /// </summary>
+    /// <param name="guildId">The ID of the guild.</param>
+    private async Task CreateChannelsGuild(ulong guildId)
+    {
+        _busyLoading = true;
+        if (_httpClient == null)
+            return;
+        _channels = await _httpClient.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
+        Debug.Assert(_channels != null, nameof(_channels) + " != null");
+        Logger.LogInformation("Fetched {ChannelCount} channels.", _channels.Count);
+        _busyLoading = false;
+    }
+
+    /// <summary>
+    ///     Reload the channel list with the current selected channel ID.
+    /// </summary>
+    private async Task ReloadChannelList()
+    {
+        if (ulong.TryParse(_selectedId, out var id))
+        {
+            await CreateChannelsGuild(id);
+        }
+    }
+
+}
+
+
+<div>
+    <p>
+        <img src="@Assets["icons/info.png"]" width="32" height="32" alt="Information"/>
+        A portal is a DM, Server Message and practically any kind of message the Bot User can receive. Select one down
+        below.
+    </p>
+
+
+    <div class="channel-selection-panel">
+        @if (!_busyLoading && _channels != null && _guilds != null)
+        {
+            <div>
+                <select @bind="_selectedId">
+                    @foreach (var guild in _guilds)
+                    {
+                        <option value="@(guild.Id)">@(guild.Name)</option>
+                    }
+                </select>
+                <button class="btn" @onclick="ReloadChannelList">To Portal</button>
+            </div>
+
+            <!-- Channel selection section -->
+            @foreach (var channel in _channels)
+            {
+                <div class="channel-button">
+                    <button class="channel-identifier">
+                        <img
+                            src="@Assets[channel.TypeChannel == ChannelType.Text ? "icons/text_channel.png" : "icons/voice_channel.png"]"
+                            alt="Channel Type Icon"
+                            width="16"
+                            height="16"/>
+                        @(channel.ChannelName)
+                    </button>
+
+                    <!-- This action is supposed to lock the channel completely for users by setting the permission flag for sending messages to false. -->
+                    <button title="Click here to lock or unlock this channel." class="btn-no-back">
+                        <img
+                            src="@Assets["icons/lock.png"]"
+                            alt="Lock"
+                            width="32" height="32"
+                            draggable="false"
+                        />
+                    </button>
+
+                    <!-- This action is supposed to completely delete the channel all together. -->
+                    <button title="Click here to delete this channel." class="btn-no-back">
+                        <img
+                            src="@Assets["icons/delete.png"]"
+                            alt="Delete"
+                            width="32" height="32"
+                            draggable="false"
+                        />
+                    </button>
+                </div>
+            }
+        }
+        else
+        {
+            <LoadingThrobber/>
+        }
+    </div>
+</div>

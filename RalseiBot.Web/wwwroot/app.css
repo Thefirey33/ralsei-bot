@@ -65,14 +65,57 @@ body {
 
 .top-link-panel {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 30px;
     align-items: center;
     margin: 20px;
 }
 
-.left-channel-selection-panel {
+.channel-button {
     display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.channel-button > .channel-identifier {
+    background-color: white;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    border: none;
+}
+
+.channel-button > .channel-identifier:hover {
+    text-decoration: underline;
+}
+
+.channel-selection-panel {
+    display: flex;
+    overflow: auto;
+    max-height: 50vh;
     flex-direction: column;
     border: 1px solid black;
+    gap: 10px;
     padding: 10px;
+}
+
+.btn {
+    cursor: pointer;
+}
+
+.btn-no-back {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.loading-throbber {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
 }

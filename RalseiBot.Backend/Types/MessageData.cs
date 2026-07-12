@@ -7,6 +7,11 @@ namespace ralsei_bot_discord.Types;
 public struct MessageData
 {
     /// <summary>
+    ///     The creator of the message.
+    /// </summary>
+    public string Author { get; init; }
+
+    /// <summary>
     ///     The ID of the message.
     /// </summary>
     [JsonPropertyName("id")]

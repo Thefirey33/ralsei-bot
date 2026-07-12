@@ -11,7 +11,7 @@ public class CommunicationController(RestClient restClient) : ControllerBase
     /// <summary>
     ///     The maximum batch size the discord API will supply.
     /// </summary>
-    private const int MaximumBatchSize = 1000;
+    private const int MaximumBatchSize = 100;
 
     private readonly PaginationProperties<ulong> _paginationProperties = new()
     {
@@ -34,7 +34,8 @@ public class CommunicationController(RestClient restClient) : ControllerBase
         {
             ChannelId = message.ChannelId,
             CreatedAt = message.CreatedAt,
-            Text = message.Content
+            Text = message.Content,
+            Author = message.Author.Username
         }).ToList());
     }
 }
