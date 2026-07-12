@@ -1,0 +1,24 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UserSecretsId>247f7fcd-48b6-48f4-9706-27a60fe04226</UserSecretsId>
+        <RootNamespace>ralsei-bot</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\RalseiBot.Backend\RalseiBot.Backend.csproj" />
+      <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\RalseiBot.Web\RalseiBot.Web.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Aspire.Hosting.Blazor" Version="13.4.6-preview.1.26319.6" />
+      <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0" />
+      <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Dns" Version="10.7.0" />
+    </ItemGroup>
+
+</Project>
