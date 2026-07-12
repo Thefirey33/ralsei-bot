@@ -1,0 +1,69 @@
+@page "/Messaging"
+@using ralsei_bot_discord.Types
+@inject IHttpClientFactory ClientFactory
+@inject ILogger<Messaging> Logger
+
+@code {
+
+    /// <summary>
+    ///     The HTTP Client connected to the bot.
+    /// </summary>
+    private HttpClient? _httpClient;
+
+    /// <summary>
+    ///     All the guilds that the bot can reference.
+    /// </summary>
+    private List<GuildData>? _guilds;
+
+    /// <summary>
+    ///     All the channels that the bot can reference.
+    /// </summary>
+    private List<ChannelData>? _channels;
+
+    /// <summary>
+    ///     The selected ID that the user has selected from the list.
+    /// </summary>
+    private string SelectedId { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _httpClient = ClientFactory.CreateClient("RalseiBotBackend");
+
+        // Attempt to retrieve all guild data.
+        _guilds = await _httpClient.GetFromJsonAsync<List<GuildData>>("Guild/all");
+
+        if (_guilds != null)
+            await CreateChannelsGuild(_guilds.First().Id);
+    }
+
+    private async Task CreateChannelsGuild(ulong guildId)
+    {
+        if (_httpClient == null)
+            return;
+        _channels = await _httpClient.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
+        Logger.LogInformation("Fetched {ChannelCount} channels.", _channels.Count);
+    }
+
+}
+
+
+<div class="left-channel-selection-panel">
+    <select @bind="SelectedId">
+        @if (_guilds != null)
+        {
+            @foreach (var guild in _guilds)
+            {
+                <option value="@(guild.Id)">@(guild.Name)</option>
+            }
+        }
+    </select>
+
+    <!-- Channel selection section -->
+    @if (_channels != null)
+    {
+        @foreach (var channel in _channels)
+        {
+            <button>@(channel.ChannelName)</button>
+        }
+    }
+</div>

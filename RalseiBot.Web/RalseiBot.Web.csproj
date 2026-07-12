@@ -8,11 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\RalseiBot.Backend\RalseiBot.Backend.csproj"/>
+        <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0" />
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0"/>
     </ItemGroup>
 
 </Project>

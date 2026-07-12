@@ -5,18 +5,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services.AddLogging();
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+
+builder.Logging
+    .ClearProviders()
+    .AddConsole();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddHttpClient("RalseiBotBackend",
-    client =>
-    {
-        client.BaseAddress = new Uri("https+http://ralseibotbackend");
-    });
+    client => { client.BaseAddress = new Uri("https+http://ralseibotbackend"); });
 
 var app = builder.Build();
 
@@ -24,7 +23,7 @@ app.MapDefaultEndpoints();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseExceptionHandler("/Error", true);
     app.UseHsts();
 }
 
