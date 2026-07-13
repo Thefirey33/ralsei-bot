@@ -27,7 +27,7 @@ public class GuildController(RestClient restClient) : ControllerBase
             {
                 Id = guild.Id,
                 Name = guild.Name
-            }).ToList();
+            });
 
         return Ok(guildConversion);
     }
@@ -45,13 +45,13 @@ public class GuildController(RestClient restClient) : ControllerBase
         return Ok(
             fetchedChannels
                 .Where(channel => channel is VoiceGuildChannel or TextChannel)
+                .OrderBy(channel => channel.Position)
                 .Select(channel => new ChannelData
                 {
                     ChannelId = channel.Id,
                     ChannelName = channel.Name,
                     GuildId = channel.GuildId,
                     TypeChannel = channel is VoiceGuildChannel ? ChannelType.Voice : ChannelType.Text
-                })
-                .ToList());
+                }));
     }
 }

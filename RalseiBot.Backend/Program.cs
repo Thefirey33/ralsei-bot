@@ -14,11 +14,17 @@ builder.AddServiceDefaults();
 
 // Add logging so we can log what the program is doing.
 
-builder.Services.AddLogging();
+builder.Services
+    .AddLogging()
+    .AddAntiforgery();
 
 builder.Logging
     .ClearProviders()
     .AddConsole();
+// Register the MySQL databases, so the bot can use them properly.
+builder.AddKeyedMySqlDataSource("ScoreDB");
+builder.AddKeyedMySqlDataSource("TrustDB");
+builder.AddKeyedMySqlDataSource("ServerDB");
 
 // Register all the discord and API related services.
 // Don't forget to register the Discord Rest API, it's the most important out of all of them.
@@ -29,9 +35,14 @@ builder.Services
         options.Intents = GatewayIntents.All;
         options.Presence = new PresenceProperties(UserStatusType.Online);
     })
-    .AddDiscordRest()
+    .AddDiscordRest();
+
+builder.Services
     .AddApplicationCommands()
-    .AddOpenApi()
+    .AddOpenApi();
+
+builder.Services
+    .AddGatewayHandlers(typeof(Program).Assembly)
     .AddEndpointsApiExplorer()
     .AddControllers();
 
@@ -48,5 +59,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
 app.UseHttpsRedirection();
+app.UseAntiforgery();
+app.UseHsts();
 app.MapControllers();
 app.Run();

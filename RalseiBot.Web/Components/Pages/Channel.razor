@@ -1,0 +1,23 @@
+@page "/Channel/{Id:long}"
+@inject IHttpClientFactory ClientFactory
+@inject ILogger<Channel> Logger;
+
+@code {
+
+    /// <summary>
+    ///     The ID of the current channel.
+    /// </summary>
+    [Parameter]
+    public long Id { get; set; }
+
+    /// <summary>
+    ///     The HTTP Client for the channel interface.
+    /// </summary>
+    private HttpClient? Client { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Client = ClientFactory.CreateClient("RalseiBotBackend");
+    }
+
+}

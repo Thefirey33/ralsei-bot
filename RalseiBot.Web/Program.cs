@@ -15,7 +15,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddHttpClient("RalseiBotBackend",
-    client => { client.BaseAddress = new Uri("https+http://ralseibotbackend"); });
+    client => { client.BaseAddress = new Uri("https+http://RalseiBotBackend"); });
 
 var app = builder.Build();
 
@@ -29,9 +29,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
-
+app.UseRouting();
 app.UseAntiforgery();
-
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

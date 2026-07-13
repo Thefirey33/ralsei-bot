@@ -8,16 +8,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0" />
-        <PackageReference Include="NetCord" Version="1.0.0-beta.11" />
-        <PackageReference Include="NetCord.Hosting" Version="1.0.0-beta.11" />
-        <PackageReference Include="NetCord.Hosting.AspNetCore" Version="1.0.0-beta.11" />
-        <PackageReference Include="NetCord.Hosting.Services" Version="1.0.0-beta.11" />
+        <PackageReference Include="Aspire.MySqlConnector" Version="13.4.6"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0"/>
+        <PackageReference Include="NetCord" Version="1.0.0-beta.11"/>
+        <PackageReference Include="NetCord.Hosting" Version="1.0.0-beta.11"/>
+        <PackageReference Include="NetCord.Hosting.AspNetCore" Version="1.0.0-beta.11"/>
+        <PackageReference Include="NetCord.Hosting.Services" Version="1.0.0-beta.11"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj"/>
     </ItemGroup>
 
 </Project>

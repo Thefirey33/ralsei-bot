@@ -1,0 +1,24 @@
+@code {
+    [Parameter] public ulong Id { get; set; }
+    [Parameter] public HttpClient? Client { get; set; }
+}
+
+<!-- This action is supposed to lock the channel completely for users by setting the permission flag for sending messages to false. -->
+<button title="Click here to lock or unlock this channel." class="btn-no-back">
+    <img
+        src="@Assets["icons/lock.png"]"
+        alt="Lock"
+        width="32" height="32"
+        draggable="false"
+    />
+</button>
+
+<!-- This action is supposed to completely delete the channel all together. -->
+<button title="Click here to delete this channel." class="btn-no-back">
+    <img
+        src="@Assets["icons/delete.png"]"
+        alt="Delete"
+        width="32" height="32"
+        draggable="false"
+    />
+</button>

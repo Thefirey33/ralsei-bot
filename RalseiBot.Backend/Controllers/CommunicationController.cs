@@ -36,6 +36,6 @@ public class CommunicationController(RestClient restClient) : ControllerBase
             CreatedAt = message.CreatedAt,
             Text = message.Content,
             Author = message.Author.Username
-        }).ToList());
+        }));
     }
 }

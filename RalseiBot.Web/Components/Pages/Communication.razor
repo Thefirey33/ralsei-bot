@@ -11,7 +11,7 @@
     /// <summary>
     ///     The HTTP Client connected to the bot.
     /// </summary>
-    private HttpClient? _httpClient;
+    private HttpClient? _client;
 
     /// <summary>
     ///     All the guilds that the bot can reference.
@@ -38,16 +38,20 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        _httpClient = ClientFactory.CreateClient("RalseiBotBackend");
+        _client = ClientFactory.CreateClient("RalseiBotBackend");
 
         _busyLoading = true;
 
         // Attempt to retrieve all guild data.
         // While receiving the data, display the loading throbber for the user so they don't spam the API with too many requests,
         // which would result in a rate limit.
-        _guilds = await _httpClient.GetFromJsonAsync<List<GuildData>>("Guild/all");
-        if (_guilds != null)
-            await CreateChannelsGuild(_guilds.First().Id);
+
+        if (_guilds == null)
+        {
+            _guilds = await _client.GetFromJsonAsync<List<GuildData>>("Guild/all");
+            if (_guilds != null)
+                await CreateChannelsGuild(_guilds.First().Id);
+        }
     }
 
     /// <summary>
@@ -57,9 +61,9 @@
     private async Task CreateChannelsGuild(ulong guildId)
     {
         _busyLoading = true;
-        if (_httpClient == null)
+        if (_client == null)
             return;
-        _channels = await _httpClient.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
+        _channels = await _client.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
         Debug.Assert(_channels != null, nameof(_channels) + " != null");
         Logger.LogInformation("Fetched {ChannelCount} channels.", _channels.Count);
         _busyLoading = false;
@@ -104,40 +108,21 @@
             @foreach (var channel in _channels)
             {
                 <div class="channel-button">
-                    <button class="channel-identifier">
+                    <a href="/Channel/@(channel.ChannelId)" class="channel-identifier">
                         <img
                             src="@Assets[channel.TypeChannel == ChannelType.Text ? "icons/text_channel.png" : "icons/voice_channel.png"]"
                             alt="Channel Type Icon"
                             width="16"
                             height="16"/>
                         @(channel.ChannelName)
-                    </button>
-
-                    <!-- This action is supposed to lock the channel completely for users by setting the permission flag for sending messages to false. -->
-                    <button title="Click here to lock or unlock this channel." class="btn-no-back">
-                        <img
-                            src="@Assets["icons/lock.png"]"
-                            alt="Lock"
-                            width="32" height="32"
-                            draggable="false"
-                        />
-                    </button>
-
-                    <!-- This action is supposed to completely delete the channel all together. -->
-                    <button title="Click here to delete this channel." class="btn-no-back">
-                        <img
-                            src="@Assets["icons/delete.png"]"
-                            alt="Delete"
-                            width="32" height="32"
-                            draggable="false"
-                        />
-                    </button>
+                    </a>
+                    <ActionPanel Client="_client" Id="@(channel.ChannelId)"/>
                 </div>
             }
         }
         else
         {
-            <LoadingThrobber/>
+            <LoadingThrobber ConnectionString="Loading Channels..."/>
         }
     </div>
 </div>
