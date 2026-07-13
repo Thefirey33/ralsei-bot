@@ -9,6 +9,8 @@ builder.Services
 
 var mySql = builder
     .AddMySql("MySQLDatabase")
+    .WithDataVolume(isReadOnly: false)
+    .WithPhpMyAdmin()
     .WithLifetime(ContainerLifetime.Persistent);
 
 // Databases for the Ralsei Bot.
@@ -68,6 +70,7 @@ var serverDb
 
 var backendService
     = builder.AddProject<RalseiBot_Backend>("RalseiBotBackend")
+        .WithHttpEndpoint(8080)
         .WithReference(scoreDb) // Reference each
         .WithReference(trustedUser) // Database, so we can
         .WithReference(serverDb) // Use it.
@@ -79,6 +82,7 @@ var backendService
 builder.AddProject<RalseiBot_Web>("RalseiBotFrontend")
     .WithReference(backendService)
     .WithExternalHttpEndpoints()
+    .WithHttpEndpoint(8000)
     .WaitFor(backendService);
 
 builder.Build().Run();

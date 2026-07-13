@@ -1,8 +1,43 @@
 @page "/Database"
 @using Microsoft.AspNetCore.Authorization
+@using RalseiBot.Web.Components.Widgets
 @inject IHttpClientFactory ClientFactory
 @attribute [Authorize]
 
 @code {
+    private HttpClient? _httpClient;
 
+    /// <summary>
+    ///     This is a boolean that says if the Database is alive and functional.
+    /// </summary>
+    private bool _databaseIsOk;
+
+    /// <summary>
+    ///     If the database is busy fetching something.
+    /// </summary>
+    private bool _fetchingDatabaseInformation = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _httpClient = ClientFactory.CreateClient("RalseiBotBackend");
+        if (bool.TryParse(await _httpClient.GetStringAsync("DatabaseChecker"), out var result))
+            _databaseIsOk = result;
+
+        _fetchingDatabaseInformation = false;
+    }
+
+}
+
+<h3>Database Information</h3>
+@if (_fetchingDatabaseInformation)
+{
+    <LoadingThrobber ConnectionString="Fetching Databases..."/>
+}
+else
+{
+    <!-- Display database cluster information, since we have a cluster of databases. -->
+    <p class="horizontal-alignment">
+        <ImgIcon AssetLocation="@Assets[_databaseIsOk ? "icons/info.png" : "icons/warning.png"]"/>
+        Database Cluster is @(_databaseIsOk ? "Functional" : "Broken!")
+    </p>
 }

@@ -1,18 +1,15 @@
 ﻿@inject NavigationManager navigationManager
+@using System.Reflection
+@using RalseiBot.Web.Components.Widgets
 @inherits LayoutComponentBase
 @attribute [StreamRendering]
 
-<h1 class="align-center">
-    <img src="@Assets["favicon.png"]" alt="Logo" width="32" height="32"/>
-    Ralsei Control Panel
-</h1>
+@code
+{
+    private string? Version => Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+}
 
-<div class="top-link-panel">
-    <NavLink href="/">Home</NavLink>
-    <NavLink href="/Communication">Communication</NavLink>
-    <NavLink href="/Moderation">Moderation</NavLink>
-    <NavLink href="/Database">Database</NavLink>
-</div>
+<TopNavigationPanel/>
 
 @Body
 
@@ -21,3 +18,14 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+<footer>
+    <div class="info-panel">
+        <ImgIcon AssetLocation="@Assets["icons/info.png"]"/>
+        <p> Ralsei Version @(Version) </p>
+    </div>
+    <div class="info-panel">
+        <ImgIcon AssetLocation="@Assets["icons/warning.png"]"/>
+        <p> This bot is not affiliated with Toby Fox, the owner of DELTARUNE. It is merely a fan project. </p>
+    </div>
+</footer>

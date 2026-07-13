@@ -1,0 +1,43 @@
+@rendermode InteractiveServer
+@inject IHttpClientFactory clientFactory
+@inject NavigationManager NavigationManager
+
+@code {
+
+    private HttpClient? HttpClient => clientFactory.CreateClient("RalseiBotBackend");
+
+
+    private async Task Logout()
+    {
+    }
+
+}
+
+<nav class="top-link-panel">
+
+    <!-- HOME -->
+    <NavLink href="/" class="btn-no-back">
+        <ImgIcon AssetLocation="@Assets["favicon.png"]"></ImgIcon>
+    </NavLink>
+
+    <!-- COMMUNICATION -->
+    <NavLink href="/Communication" class="btn-no-back">
+        <ImgIcon AssetLocation="@Assets["icons/communication.png"]"></ImgIcon>
+    </NavLink>
+
+    <!-- MODERATION -->
+    <NavLink href="/Moderation" class="btn-no-back">
+        <ImgIcon AssetLocation="@Assets["icons/moderation.png"]"></ImgIcon>
+    </NavLink>
+
+    <!-- DATABASE -->
+    <NavLink href="/Database" class="btn-no-back">
+        <ImgIcon AssetLocation="@Assets["icons/database.png"]"></ImgIcon>
+    </NavLink>
+
+    <form action="FrontendSecurity/Logout" , method="post">
+        <button class="btn-no-back" type="submit" @onclick="Logout">
+            <ImgIcon AssetLocation="@Assets["icons/logout.png"]"></ImgIcon>
+        </button>
+    </form>
+</nav>

@@ -1,31 +1,57 @@
 @page "/Login"
+@using RalseiBot.Web.Components.Widgets
 @rendermode InteractiveServer
-@inject ILogger<Login> Logger
-@inject IHttpClientFactory HttpClientFactory
-@inject IHttpContextAccessor HttpContextAccessor
 
 @code
 {
+    /// <summary>
+    ///     This variable shows or hides the password.
+    /// </summary>
+    private bool _showPassword;
+
     /// <summary>
     ///     This is the returning URL parameter, so the API can link back to the page that is needed.
     /// </summary>
     [Parameter]
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
+
+    /// <summary>
+    ///     The name of the error.
+    /// </summary>
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
 }
 
-<div class="password-entry-warning-box">
-    <img src="@Assets["icons/lock.png"]" width="64" height="64" alt="Locked Icon"/>
-    <p>Enter your password to access this panel.</p>
+<div class="horizontal-alignment">
+    <img src="@Assets["icons/lock_auth.png"]" width="128" height="128" alt="Ralsei Padlock"/>
+    <p>This control panel is password protected.</p>
 </div>
 
-<!-- The Login Entry Box -->
-<form class="entry-box" action="/login-auth" method="post">
+@if (Error != null)
+{
+    <p class="invalid-credentials-error">
+        <ImgIcon AssetLocation="@Assets["icons/warning.png"]"></ImgIcon>
+        Session Failure:
+        @(Error)
+    </p>
+}
 
+<!-- The Login Entry Box -->
+<form class="entry-box" action="/FrontEndSecurity/Login" method="post">
+    <AntiforgeryToken/>
+
+    <!-- The URL Returning Argument, for the URL to return back to it's primary position. -->
     <input type="hidden" name="returnUrl" value="@ReturnUrl"/>
 
     <input placeholder="Enter username..." type="text" name="username" class="form-control" required/>
-    <input placeholder="Enter password..." type="password" name="password" class="form-control" required/>
+    <div class="password-section-alignment">
+        <input placeholder="Enter password..." type="@(_showPassword ? "text" : "password")" name="password"
+               class="form-control"
+               required/>
+        <button type="button" class="btn"
+                @onclick="() => _showPassword = !_showPassword">@(_showPassword ? "Hide" : "Show")</button>
+    </div>
 
-    <button type="submit" class="btn btn-primary">Login</button>
+    <button type="submit" class="btn">Login</button>
 </form>

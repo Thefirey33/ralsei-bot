@@ -1,7 +1,16 @@
 @code {
     [Parameter] public ulong Id { get; set; }
     [Parameter] public HttpClient? Client { get; set; }
+
+    private void CopyToClipboard()
+    {
+        JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", Id.ToString());
+    }
+
 }
+
+@inject IJSRuntime JsRuntime;
+@rendermode InteractiveServer
 
 <!-- This action is supposed to lock the channel completely for users by setting the permission flag for sending messages to false. -->
 <button title="Click here to lock or unlock this channel." class="btn-no-back">
@@ -18,6 +27,16 @@
     <img
         src="@Assets["icons/delete.png"]"
         alt="Delete"
+        width="32" height="32"
+        draggable="false"
+    />
+</button>
+
+<!-- This action is supposed to copy the ID of the channel. -->
+<button @onclick="CopyToClipboard" title="Click here to copy the ID of this channel." class="btn-no-back">
+    <img
+        src="@Assets["icons/clipboard.png"]"
+        alt="Clipboard"
         width="32" height="32"
         draggable="false"
     />

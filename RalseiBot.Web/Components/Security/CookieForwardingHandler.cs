@@ -10,10 +10,9 @@ public class CookieForwardingHandler(IHttpContextAccessor httpContextAccessor) :
         CancellationToken cancellationToken)
     {
         var httpContext = httpContextAccessor.HttpContext;
-
         if (httpContext?.User?.Identity?.IsAuthenticated != true) return base.SendAsync(request, cancellationToken);
 
-        var tokenClaim = httpContext.User.FindFirst("RawJwtToken")?.Value;
+        var tokenClaim = httpContext.User.FindFirst("Token")?.Value;
 
         if (!string.IsNullOrEmpty(tokenClaim))
             request.Headers.Add("Cookie", $"X-Access-Token={tokenClaim}");

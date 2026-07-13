@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="MySQLDatabase" uuid="ce4d93b7-860c-4708-9803-63e0b12cc858">
+    <data-source source="LOCAL" name="MySQLDatabase" uuid="88483653-5011-4831-9ab9-83045e98b391">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:32774/?user=root&amp;password=6-XZN_8fw%7DR%7DPC5ACnw0k3</jdbc-url>
+      <jdbc-url>jdbc:mysql://localhost:32769/?user=root&amp;password=6-XZN_8fw%7DR%7DPC5ACnw0k3</jdbc-url>
       <jdbc-additional-properties>
         <property name="aspireResourceId" value="MySQLDatabase-1d86832a" />
       </jdbc-additional-properties>

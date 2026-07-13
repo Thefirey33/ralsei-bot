@@ -10,14 +10,14 @@
 @code
 {
     private HttpClient? Client { get; set; }
-    private InformationData? Data { get; set; }
+    private InformationData? _data;
 
     protected override async Task OnInitializedAsync()
     {
         // Attempt to fetch the general information that the bot needs.
         Client = ClientFactory.CreateClient("RalseiBotBackend");
-        Data = await Client.GetFromJsonAsync<InformationData>("Information");
-        Logger.LogInformation("Displaying data {Data} to information panel", JsonSerializer.Serialize(Data));
+        _data = await Client.GetFromJsonAsync<InformationData>("Information");
+        Logger.LogInformation("Displaying data {Data} to information panel", JsonSerializer.Serialize(_data));
     }
 }
 
@@ -29,15 +29,15 @@
     </p>
 
 
-    @if (Data.HasValue)
+    @if (_data.HasValue)
     {
         // This displays the general information for the bot's current state.
         // These are basic information about what the bot is doing.
         <ul>
             <li>
-                Total Guilds: @(Data?.GuildCount)
+                Total Guilds: @(_data?.GuildCount)
                 <ul>
-                    @foreach (var guildInformation in Data?.GuildInformation!)
+                    @foreach (var guildInformation in _data?.GuildInformation!)
                     {
                         <!-- Guild name and Guild ID displayed -->
                         <li>@(guildInformation.GuildName)
@@ -53,7 +53,7 @@
                     }
                 </ul>
             </li>
-            Current User Session: @(Data?.UserInformation)
+            Current User Session: @(_data?.UserInformation)
         </ul>
     }
     else

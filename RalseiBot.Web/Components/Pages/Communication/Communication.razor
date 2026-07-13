@@ -87,7 +87,7 @@
 
 <div>
     <p>
-        <img src="@Assets["icons/info.png"]" width="32" height="32" alt="Information"/>
+        <ImgIcon AssetLocation="@Assets["icons/info.png"]"/>
         A portal is a DM, Server Message and practically any kind of message the Bot User can receive. Select one down
         below.
     </p>
@@ -97,7 +97,7 @@
         @if (!_busyLoading && _channels != null && _guilds != null)
         {
             <div>
-                <select @bind="_selectedId">
+                <select @bind="_selectedId" class="btn">
                     @foreach (var guild in _guilds)
                     {
                         <option value="@(guild.Id)">@(guild.Name)</option>
