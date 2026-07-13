@@ -22,5 +22,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 EXPOSE 8000
-EXPOSE 8080
 ENTRYPOINT ["dotnet", "RalseiBot.dll"]
