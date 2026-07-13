@@ -10,17 +10,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\RalseiBot.Backend\RalseiBot.Backend.csproj"/>
-        <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj"/>
-        <ProjectReference Include="..\RalseiBot.Web\RalseiBot.Web.csproj"/>
+        <ProjectReference Include="..\RalseiBot.Backend\RalseiBot.Backend.csproj" />
+        <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\RalseiBot.Web\RalseiBot.Web.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.Blazor" Version="13.4.6-preview.1.26319.6"/>
-        <PackageReference Include="Aspire.Hosting.MySql" Version="13.4.6"/>
-        <PackageReference Include="Aspire.MySqlConnector" Version="13.4.6"/>
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0"/>
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Dns" Version="10.7.0"/>
+        <PackageReference Include="Aspire.Hosting.Blazor" Version="13.4.6-preview.1.26319.6" />
+        <PackageReference Include="Aspire.Hosting.MySql" Version="13.4.6" />
+        <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.6" />
+        <PackageReference Include="Aspire.MySqlConnector" Version="13.4.6" />
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0" />
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Dns" Version="10.7.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="appsettings.Development.json" />
     </ItemGroup>
 
 </Project>

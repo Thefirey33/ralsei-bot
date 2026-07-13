@@ -1,0 +1,31 @@
+@page "/Login"
+@rendermode InteractiveServer
+@inject ILogger<Login> Logger
+@inject IHttpClientFactory HttpClientFactory
+@inject IHttpContextAccessor HttpContextAccessor
+
+@code
+{
+    /// <summary>
+    ///     This is the returning URL parameter, so the API can link back to the page that is needed.
+    /// </summary>
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+}
+
+<div class="password-entry-warning-box">
+    <img src="@Assets["icons/lock.png"]" width="64" height="64" alt="Locked Icon"/>
+    <p>Enter your password to access this panel.</p>
+</div>
+
+<!-- The Login Entry Box -->
+<form class="entry-box" action="/login-auth" method="post">
+
+    <input type="hidden" name="returnUrl" value="@ReturnUrl"/>
+
+    <input placeholder="Enter username..." type="text" name="username" class="form-control" required/>
+    <input placeholder="Enter password..." type="password" name="password" class="form-control" required/>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NetCord;
 using NetCord.Rest;
@@ -7,6 +8,7 @@ using ChannelType = ralsei_bot_discord.Types.ChannelType;
 namespace ralsei_bot_discord.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("[controller]")]
 public class GuildController(RestClient restClient) : ControllerBase
 {

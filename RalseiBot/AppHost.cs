@@ -65,6 +65,7 @@ var serverDb
 
 // The Backend for the Ralsei Bot.
 // Each of the databases will connect to this project, where it will manage it.
+
 var backendService
     = builder.AddProject<RalseiBot_Backend>("RalseiBotBackend")
         .WithReference(scoreDb) // Reference each
@@ -74,8 +75,10 @@ var backendService
         .WaitFor(trustedUser) // Database
         .WaitFor(serverDb); // To Initialize.
 
+
 builder.AddProject<RalseiBot_Web>("RalseiBotFrontend")
     .WithReference(backendService)
+    .WithExternalHttpEndpoints()
     .WaitFor(backendService);
 
 builder.Build().Run();

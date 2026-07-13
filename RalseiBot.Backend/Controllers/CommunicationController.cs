@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NetCord.Rest;
 using ralsei_bot_discord.Types;
@@ -5,6 +6,7 @@ using ralsei_bot_discord.Types;
 namespace ralsei_bot_discord.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("[controller]")]
 public class CommunicationController(RestClient restClient) : ControllerBase
 {

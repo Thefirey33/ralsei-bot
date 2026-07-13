@@ -1,0 +1,16 @@
+@inject NavigationManager Navigation
+
+@code {
+    // This very cool element over here's only job is to redirect you to the login page.
+    // Life always gives you a lot of chances to do many things,
+    // This element only does one thing. 
+    // And one thing only!
+    // Just being a redirector.
+    // Ever thought about that?
+
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/Login", true);
+    }
+
+}

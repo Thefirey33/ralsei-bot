@@ -113,6 +113,19 @@ body {
     cursor: pointer;
 }
 
+.password-entry-warning-box {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
+
+.entry-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .loading-throbber {
     display: flex;
     flex-direction: row;

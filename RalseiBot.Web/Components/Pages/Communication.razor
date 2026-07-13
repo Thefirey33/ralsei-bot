@@ -1,10 +1,12 @@
 @page "/Communication"
 @using System.Diagnostics
+@using Microsoft.AspNetCore.Authorization
 @using ralsei_bot_discord.Types
 @using RalseiBot.Web.Components.Widgets
 @rendermode InteractiveServer
 @inject IHttpClientFactory ClientFactory
 @inject ILogger<Communication> Logger
+@attribute [Authorize]
 
 @code {
 

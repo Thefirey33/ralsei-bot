@@ -1,9 +1,11 @@
 ﻿@page "/"
 @using System.Text.Json
+@using Microsoft.AspNetCore.Authorization
 @using ralsei_bot_discord.Types
 @using RalseiBot.Web.Components.Widgets
 @inject ILogger<Home> Logger
 @inject IHttpClientFactory ClientFactory
+@attribute [Authorize]
 
 @code
 {

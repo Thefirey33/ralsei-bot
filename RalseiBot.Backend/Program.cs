@@ -1,6 +1,9 @@
 // Ralsei Bot Discord API 
 // This is the side of the bot that communicates with the Discord API.
 
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Hosting.Gateway;
@@ -26,8 +29,44 @@ builder.AddKeyedMySqlDataSource("ScoreDB");
 builder.AddKeyedMySqlDataSource("TrustDB");
 builder.AddKeyedMySqlDataSource("ServerDB");
 
+// Security
+// This is handled using a JWT Bearer Token system, where a cookie will store the specified access token.
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // Since this bot will run locally...
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Authorization:SecretKey"]!)),
+            ValidIssuer = builder.Configuration["Authorization:Issuer"],
+            ValidAudience = builder.Configuration["Authorization:Issuer"]
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.TryGetValue("X-Access-Token", out var token)) context.Token = token;
+
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 // Register all the discord and API related services.
 // Don't forget to register the Discord Rest API, it's the most important out of all of them.
+
 
 builder.Services
     .AddDiscordGateway(options =>
@@ -58,7 +97,12 @@ app.AddModules(typeof(Program).Assembly);
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+// Use Swagger to make it easier to communicate with the API.
+app.UseSwaggerUI(options => { options.SwaggerEndpoint("/openapi/v1.json", "RalseiAPI"); });
+
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 app.UseHsts();
 app.MapControllers();

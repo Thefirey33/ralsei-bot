@@ -1,6 +1,8 @@
 @page "/Channel/{Id:long}"
+@using Microsoft.AspNetCore.Authorization
 @inject IHttpClientFactory ClientFactory
 @inject ILogger<Channel> Logger;
+@attribute [Authorize]
 
 @code {
 

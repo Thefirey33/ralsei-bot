@@ -1,5 +1,7 @@
 @page "/Database"
+@using Microsoft.AspNetCore.Authorization
 @inject IHttpClientFactory ClientFactory
+@attribute [Authorize]
 
 @code {
 
