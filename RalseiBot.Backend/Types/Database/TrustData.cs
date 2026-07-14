@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ralsei_bot_discord.Types.Database;
 
-public struct TrustData
+public class TrustData
 {
     /// <summary>
     ///     The ID of the user that's trusted.
@@ -14,5 +14,16 @@ public struct TrustData
     ///     The User ID of the user that's trusted.
     ///     The User ID is the discord user id.
     /// </summary>
+    [JsonPropertyName("user_id")]
+    public long UserId { get; set; }
+}
+
+public class TrustRequestData
+{
+    /// <summary>
+    ///     The User ID of the user that's trusted.
+    ///     The User ID is the discord user id.
+    /// </summary>
+    [JsonPropertyName("user_id")]
     public long UserId { get; set; }
 }

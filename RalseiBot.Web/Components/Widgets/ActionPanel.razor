@@ -2,6 +2,9 @@
     [Parameter] public ulong Id { get; set; }
     [Parameter] public HttpClient? Client { get; set; }
 
+    /// <summary>
+    ///     Copy the channel ID to the clipboard.
+    /// </summary>
     private void CopyToClipboard()
     {
         JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", Id.ToString());
@@ -17,16 +20,6 @@
     <img
         src="@Assets["icons/lock.png"]"
         alt="Lock"
-        width="32" height="32"
-        draggable="false"
-    />
-</button>
-
-<!-- This action is supposed to completely delete the channel all together. -->
-<button title="Click here to delete this channel." class="btn-no-back">
-    <img
-        src="@Assets["icons/delete.png"]"
-        alt="Delete"
         width="32" height="32"
         draggable="false"
     />

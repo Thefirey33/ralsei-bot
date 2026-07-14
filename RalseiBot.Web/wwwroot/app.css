@@ -59,8 +59,7 @@ h1:focus {
 body {
     justify-items: center;
     align-items: center;
-    margin: 0;
-    min-height: 100dvh;
+    gap: 20px;
     display: flex;
     flex-direction: column;
 }
@@ -137,6 +136,14 @@ body {
     align-items: center;
 }
 
+.bottom-addition {
+    display: flex;
+    flex-direction: row;
+    margin: 10px;
+    gap: 10px;
+}
+
+
 .entry-box {
     display: flex;
     flex-direction: column;
@@ -152,6 +159,7 @@ body {
 
 .invalid-credentials-error {
     border: 2px red outset;
+    background-color: #ff9292;
     padding: 10px;
     align-items: center;
     display: flex;
@@ -163,6 +171,25 @@ body {
     display: flex;
     flex-direction: row;
     gap: 10px;
+}
+
+table {
+    width: 50vw;
+}
+
+table, th, td {
+    border: 1px outset black;
+    align-items: center;
+    text-align: center;
+}
+
+.table-container {
+    padding: 10px;
+    border: 1px outset black;
+}
+
+.table-container > h3 {
+    text-align: center;
 }
 
 .loading-throbber {

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ralsei_bot_discord.Types.Database;
 
-public struct GuildData
+public class GuildData
 {
     /// <summary>
     ///     The ID of this guild.

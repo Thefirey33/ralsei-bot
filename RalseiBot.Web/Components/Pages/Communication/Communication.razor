@@ -6,6 +6,9 @@
 @rendermode InteractiveServer
 @inject IHttpClientFactory ClientFactory
 @inject ILogger<Communication> Logger
+@inject GeneralSharedState SharedState
+@inject IJSRuntime Js
+
 @attribute [Authorize]
 
 @code {
@@ -14,11 +17,6 @@
     ///     The HTTP Client connected to the bot.
     /// </summary>
     private HttpClient? _client;
-
-    /// <summary>
-    ///     All the guilds that the bot can reference.
-    /// </summary>
-    private List<GuildData>? _guilds;
 
     /// <summary>
     ///     All the channels that the bot can reference.
@@ -48,12 +46,8 @@
         // While receiving the data, display the loading throbber for the user so they don't spam the API with too many requests,
         // which would result in a rate limit.
 
-        if (_guilds == null)
-        {
-            _guilds = await _client.GetFromJsonAsync<List<GuildData>>("Guild/all");
-            if (_guilds != null)
-                await CreateChannelsGuild(_guilds.First().Id);
-        }
+        await SharedState.CheckIfImported(_client);
+        await CreateChannelsGuild(SharedState.CurrentGuilds.First().Id);
     }
 
     /// <summary>
@@ -82,11 +76,16 @@
         }
     }
 
+    private async Task ExecuteClipboard(ulong guildId)
+    {
+        await Js.InvokeVoidAsync("navigator.clipboard.writeText", guildId);
+    }
+
 }
 
 
 <div>
-    <p>
+    <p class="horizontal-alignment">
         <ImgIcon AssetLocation="@Assets["icons/info.png"]"/>
         A portal is a DM, Server Message and practically any kind of message the Bot User can receive. Select one down
         below.
@@ -94,16 +93,20 @@
 
 
     <div class="channel-selection-panel">
-        @if (!_busyLoading && _channels != null && _guilds != null)
+        @if (!_busyLoading && _channels != null)
         {
             <div>
-                <select @bind="_selectedId" class="btn">
-                    @foreach (var guild in _guilds)
+                <select name="PortalSelectionBox" @bind="_selectedId" class="btn">
+                    @foreach (var guild in SharedState.CurrentGuilds)
                     {
                         <option value="@(guild.Id)">@(guild.Name)</option>
                     }
                 </select>
                 <button class="btn" @onclick="ReloadChannelList">To Portal</button>
+                <!-- Add to clipboard -->
+                <button class="btn-no-back" @onclick="async () => await ExecuteClipboard(_channels.First().GuildId)">
+                    <ImgIcon AssetLocation="@Assets["icons/clipboard.png"]"/>
+                </button>
             </div>
 
             <!-- Channel selection section -->

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ralsei_bot_discord.Types.Database;
 
-public struct ScoreData
+public class ScoreData
 {
     /// <summary>
     ///     The ID of this user in the scores.
@@ -21,7 +21,7 @@ public struct ScoreData
     ///     The Username of this user in the scores.
     /// </summary>
     [JsonPropertyName("username")]
-    public string Username { get; set; }
+    public required string Username { get; set; }
 
     /// <summary>
     ///     Score of the user.

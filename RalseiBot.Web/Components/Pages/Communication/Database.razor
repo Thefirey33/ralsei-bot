@@ -1,0 +1,161 @@
+@page "/Database"
+@using System.Net.Mime
+@using System.Text
+@using Microsoft.AspNetCore.Authorization
+@using ralsei_bot_discord.Types.Database
+@using RalseiBot.Web.Components.Widgets
+@inject IHttpClientFactory ClientFactory
+@inject GeneralSharedState SharedState
+@inject IJSRuntime Js
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@code {
+    private HttpClient? _httpClient;
+
+    /// <summary>
+    ///     This is a boolean that says if the Database is alive and functional.
+    /// </summary>
+    private bool _databaseIsOk;
+
+    /// <summary>
+    ///     If the database is busy fetching something.
+    /// </summary>
+    private bool _fetchingDatabaseInformation = true;
+
+    /// <summary>
+    ///     Data from the Trust DB API.
+    /// </summary>
+    private List<TrustData>? _trustData = [];
+
+    /// <summary>
+    ///     This is the database request model for the trust database.
+    /// </summary>
+    private readonly TrustRequestData _trustDataModel = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _httpClient = ClientFactory.CreateClient("RalseiBotBackend");
+        if (bool.TryParse(await _httpClient.GetStringAsync("DatabaseChecker"), out var result))
+            _databaseIsOk = result;
+
+        await ReloadTrustDbEntries();
+        await SharedState.CheckIfImported(_httpClient);
+        _fetchingDatabaseInformation = false;
+    }
+
+    /// <summary>
+    ///     Reload the trust database entries.
+    /// </summary>
+    private async Task ReloadTrustDbEntries()
+    {
+        if (_httpClient == null)
+            return;
+
+        _trustData = await _httpClient.GetFromJsonAsync<List<TrustData>>("TrustDb");
+    }
+
+    /// <summary>
+    ///     Add an entry to the database trust entry.
+    /// </summary>
+    private async Task AddTrustDbEntry()
+    {
+        _fetchingDatabaseInformation = true;
+        if (_httpClient == null)
+            return;
+
+        var result = await _httpClient.PostAsJsonAsync("TrustDb", _trustDataModel);
+
+        if (result.IsSuccessStatusCode)
+            await ReloadTrustDbEntries();
+        _fetchingDatabaseInformation = false;
+    }
+
+    /// <summary>
+    ///     Delete an entry from the trust database.
+    /// </summary>
+    /// <param name="id">The ID to reference when deleting.</param>
+    private async Task DeleteTrustDbEntry(int id)
+    {
+        // If the user confirms to delete it,
+        // Delete the entry.
+
+        if (!await Js.InvokeAsync<bool>("confirm", "Are you sure you want to delete this entry?"))
+            return;
+
+        if (_httpClient == null)
+            return;
+
+        _fetchingDatabaseInformation = true;
+        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, "TrustDb")
+        {
+            Content = new StringContent(
+                id.ToString(),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            )
+        };
+
+        var result = await _httpClient.SendAsync(requestMessage);
+        if (result.IsSuccessStatusCode)
+            await ReloadTrustDbEntries();
+
+        _fetchingDatabaseInformation = false;
+    }
+
+}
+
+@if (_fetchingDatabaseInformation)
+{
+    <LoadingThrobber ConnectionString="Executing Database Actions..."/>
+}
+<!-- Display database cluster information, since we have a cluster of databases. -->
+<p class="horizontal-alignment">
+    <ImgIcon AssetLocation="@Assets[_databaseIsOk ? "icons/info.png" : "icons/warning.png"]"/>
+    Database Cluster is @(_databaseIsOk ? "Functional" : "Broken!")
+</p>
+
+<!-- Trusted User Database -->
+<div class="table-container">
+    <h3>Trusted Users</h3>
+    <table>
+        <tr>
+            <th>Id</th>
+            <th>User ID</th>
+            <th>Actions</th>
+        </tr>
+        @if (_trustData != null)
+        {
+            foreach (var data in _trustData)
+            {
+                <tr>
+                    <td>@data.Id</td>
+                    <td>@data.UserId</td>
+                    <td>
+                        <button class="btn-no-back" @onclick="() => DeleteTrustDbEntry(data.Id)">
+                            <ImgIcon AssetLocation="@Assets["icons/delete.png"]"></ImgIcon>
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </table>
+    <p>@(_trustData?.Count) items in Database.</p>
+    <!-- This code allows the addition to the trusted user database. -->
+    <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddTrustDbEntry">
+        <label>
+            User Id
+            <InputNumber @bind-Value="_trustDataModel.UserId" placeholder="User Id of the user to trust..."/>
+        </label>
+        <button class="btn" type="submit">Add to Database</button>
+    </EditForm>
+</div>
+<!-- Guild Information Database-->
+
+@code {
+}
+
+<div class="table-container">
+    <h3>All Guilds Information</h3>
+</div>

@@ -15,6 +15,7 @@ builder.Logging
     .AddConsole();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<GeneralSharedState>();
 builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

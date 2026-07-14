@@ -10,7 +10,7 @@ builder.Services
 var mySql = builder
     .AddMySql("MySQLDatabase")
     .WithDataVolume(isReadOnly: false)
-    .WithPhpMyAdmin()
+    .WithPhpMyAdmin(phpAdmin => phpAdmin.WithHostPort(3000))
     .WithLifetime(ContainerLifetime.Persistent);
 
 // Databases for the Ralsei Bot.
@@ -56,6 +56,7 @@ var serverDb
                             CREATE DATABASE IF NOT EXISTS ServerDB;
                             CREATE TABLE IF NOT EXISTS ServerDB.servers (
                                 id INT AUTO_INCREMENT PRIMARY KEY,
+                                guild_id BIGINT NOT NULL,
                                 ralsei_channel_id BIGINT NOT NULL,
                                 general_channel_id BIGINT NOT NULL,
                                 moderation_channel_id BIGINT NOT NULL

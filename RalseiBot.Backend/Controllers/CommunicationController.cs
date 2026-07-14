@@ -13,7 +13,7 @@ public class CommunicationController(RestClient restClient) : ControllerBase
     /// <summary>
     ///     The maximum batch size the discord API will supply.
     /// </summary>
-    private const int MaximumBatchSize = 100;
+    public const int MaximumBatchSize = 50;
 
     private readonly PaginationProperties<ulong> _paginationProperties = new()
     {
