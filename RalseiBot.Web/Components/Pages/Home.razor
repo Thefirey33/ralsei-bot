@@ -22,14 +22,14 @@
 }
 
 <!-- Information Panel Section: Displays information about the bot -->
-<div class="information-panel">
+<div class="information-panel bg-cover">
     <p class="information-label">
         <img src="@Assets["icons/info.png"]" alt="Information" width="32" height="32" draggable="false"/>
         Information about your Ralsei.
     </p>
 
 
-    @if (_data.HasValue)
+    @if (_data != null)
     {
         // This displays the general information for the bot's current state.
         // These are basic information about what the bot is doing.

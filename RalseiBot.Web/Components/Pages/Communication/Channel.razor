@@ -1,7 +1,10 @@
 @page "/Channel/{Id:long}"
 @using Microsoft.AspNetCore.Authorization
+@using ralsei_bot_discord.Types
+@using RalseiBot.Web.Components.Widgets
 @inject IHttpClientFactory ClientFactory
 @inject ILogger<Channel> Logger;
+@rendermode InteractiveServer
 @attribute [Authorize]
 
 @code {
@@ -17,9 +20,150 @@
     /// </summary>
     private HttpClient? Client { get; set; }
 
+    /// <summary>
+    ///     The base http client handler for the checker.
+    /// </summary>
+    private HttpClientHandler _httpClientHandler = new()
+    {
+        AllowAutoRedirect = false
+    };
+
+    /// <summary>
+    ///     The current message data of the user.
+    /// </summary>
+    private LinkedList<MessageData>? _messageData;
+
+    /// <summary>
+    ///     Is the bot busy pre-fetching messages?
+    /// </summary>
+    private bool _busyPreFetching;
+
     protected override async Task OnInitializedAsync()
     {
+        _busyPreFetching = true;
         Client = ClientFactory.CreateClient("RalseiBotBackend");
+        _messageData = await Client.GetFromJsonAsync<LinkedList<MessageData>>($"Communication/messages/{Id}");
+        _busyPreFetching = false;
     }
 
 }
+
+<div class="bg-cover chat-box">
+    @if (!(_messageData == null || _busyPreFetching))
+    {
+        @foreach (var msgWithIndx in _messageData.Index())
+        {
+            <div class="msg-box">
+                @{
+                    // Retrieve the actual message from the indexer.
+                    var message = msgWithIndx.Item;
+
+                    // Check if there's a available reply message.
+                    MessageData? messageData = null;
+                    var sourceMessage =
+                        _messageData.Where(data => data.Id == message.ReplyTo)
+                            .ToList();
+
+                    // Finally show the reply message.
+                    if (sourceMessage.Any())
+                        messageData = sourceMessage.First();
+                }
+
+                @if (messageData != null)
+                {
+                    <div class="horizontal-alignment reply-box">
+                        @{
+                            // Check if it's an URL, if it is, highlight it in blue.
+                            var isUrl = Uri.TryCreate(messageData.Text, UriKind.Absolute, out _);
+                        }
+                        <ImgIcon AssetLocation="@Assets["icons/reply_icon.png"]"/>
+                        <ImgIcon AssetLocation="@(messageData.ProfilePictureLink)"/>
+                        <p>@messageData.Author</p>
+                        <em class="@(isUrl ? "url-text" : "")">@(messageData.Attachments.Count > 0 ? "(Attachment Provided)" : messageData.Text)</em>
+                    </div>
+                }
+
+                <div class="top-profile-header">
+                    <ImgIcon AssetLocation="@message.ProfilePictureLink"/>
+                    <div class="msg-content">
+                        <div class="horizontal-alignment">
+                            <p>@message.Author</p>
+                            <em>@message.CreatedAt</em>
+                        </div>
+
+                        @if (!message.Embeds.Any())
+                        {
+                            <p>@message.Text</p>
+                        }
+
+
+                        @foreach (var embed in message.Embeds)
+                        {
+                            // If the embed's type is a rich embed,
+                            // Display the title.
+                            @if (embed.Type == DataEmbedType.Rich)
+                            {
+                                <h3>@embed.Title</h3>
+                            }
+
+                            // The embedding content system.
+                            // It allows embeds to be viewed, even if it's pretty barebones.
+
+                            @switch (embed.Type)
+                            {
+                                case DataEmbedType.Image:
+                                    // Element for Images.
+                                    <img src="@embed.Url" alt="Image Loading Failure" width="200" height="200"/>
+                                    break;
+                                case DataEmbedType.Video:
+                                    // Element for Videos.
+                                    <video src="@embed.Url" width="200" height="200" controls></video>
+                                    break;
+                                case DataEmbedType.Gifv:
+                                    // Element for "GIF VIDEOS"
+                                    // Discord stores GIFs as MP4 files, so we gotta do it like this.
+                                    <video src="@embed.Url" width="200" height="200" autoplay loop></video>
+                                    break;
+                                case DataEmbedType.Rich:
+                                    // Loop through every field and display the embeds accordingly.
+                                    @foreach (var field in embed.Fields)
+                                    {
+                                        <h3>@field.Name</h3>
+                                        <p>@field.Value</p>
+                                    }
+
+                                    break;
+                                case DataEmbedType.Article:
+                                case DataEmbedType.Link:
+                                case DataEmbedType.PollResult:
+                                    <a href="@embed.Url" class="btn">Click here to see attachment</a>
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                        }
+
+
+                        @foreach (var attachment in message.Attachments)
+                        {
+                            // TODO: This shit's still broken!
+                            @if (attachment.FileType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <img src="@attachment.Url" alt="Image" width="200" height="200"/>
+                            }
+                            else
+                            {
+                                <strong>Unsupported Attachment!</strong>
+                            }
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <LoadingThrobber ConnectionString="Loading Messages..."/>
+    }
+</div>

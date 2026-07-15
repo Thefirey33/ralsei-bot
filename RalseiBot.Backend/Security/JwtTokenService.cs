@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using ralsei_bot_discord.Types;
+using ralsei_bot_discord.Types.Requests;
 
 namespace ralsei_bot_discord.Security;
 
@@ -80,12 +80,12 @@ public class JwtTokenService(IConfiguration configuration, ILogger<JwtTokenServi
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginModal loginModal)
+    public IActionResult Login([FromBody] LoginRequest loginRequest)
     {
         if (!VerifyPassword(
                 configuration["Authorization:AdminPassword"] ?? throw new SecurityException("No Admin Password!"),
-                loginModal.Password)) return Unauthorized();
-        var token = GenerateJwtToken(loginModal.Username);
+                loginRequest.Password)) return Unauthorized();
+        var token = GenerateJwtToken(loginRequest.Username);
 
         var cookieOptions = new CookieOptions
         {

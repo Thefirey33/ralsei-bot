@@ -1,0 +1,8 @@
+{
+  "LockChannel": [
+    "oops.. channel is locked!"
+  ],
+  "UnlockChannel": [
+    "channel unlocked now..."
+  ]
+}

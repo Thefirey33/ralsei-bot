@@ -8,22 +8,25 @@ public class CookieAuthenticationStateProvider(IHttpContextAccessor httpContextA
 {
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var context = httpContextAccessor.HttpContext;
         var identity = new ClaimsIdentity();
-
         var httpContext = httpContextAccessor.HttpContext;
-        if (httpContext?.User?.Identity?.IsAuthenticated == true)
-            return Task.FromResult(new AuthenticationState(httpContext.User));
-
-        var tokenString = context?.Request.Cookies["X-Access-Token"];
-
-        if (!string.IsNullOrEmpty(tokenString))
+        if (httpContext != null)
         {
-            var handler = new JwtSecurityTokenHandler();
-            if (handler.CanReadToken(tokenString))
+            var tokenString = httpContext.User.FindFirstValue("Token");
+            if (!string.IsNullOrEmpty(tokenString))
             {
-                var jwtToken = handler.ReadJwtToken(tokenString);
-                identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
+                var handler = new JwtSecurityTokenHandler();
+                if (handler.CanReadToken(tokenString))
+                {
+                    var jwtToken = handler.ReadJwtToken(tokenString);
+
+                    if (DateTime.UtcNow > jwtToken.ValidTo)
+                        return Task.FromResult(
+                            new AuthenticationState(
+                                new ClaimsPrincipal())); // If the user's token expired, kick em' out!
+
+                    identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
+                }
             }
         }
 

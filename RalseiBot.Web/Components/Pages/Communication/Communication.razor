@@ -61,7 +61,6 @@
             return;
         _channels = await _client.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
         Debug.Assert(_channels != null, nameof(_channels) + " != null");
-        Logger.LogInformation("Fetched {ChannelCount} channels.", _channels.Count);
         _busyLoading = false;
     }
 
@@ -92,10 +91,10 @@
     </p>
 
 
-    <div class="channel-selection-panel">
+    <div class="channel-selection-panel bg-cover">
         @if (!_busyLoading && _channels != null)
         {
-            <div>
+            <div class="horizontal-alignment">
                 <select name="PortalSelectionBox" @bind="_selectedId" class="btn">
                     @foreach (var guild in SharedState.CurrentGuilds)
                     {

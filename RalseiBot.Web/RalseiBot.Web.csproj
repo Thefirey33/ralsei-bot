@@ -16,4 +16,8 @@
         <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.7.0"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Folder Include="wwwroot\wallpapers\"/>
+    </ItemGroup>
+
 </Project>

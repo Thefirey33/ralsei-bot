@@ -4,13 +4,13 @@ using System.Text.Json.Serialization;
 
 namespace ralsei_bot_discord.Types;
 
-public struct GuildInformation
+public class GuildInformation
 {
     /// <summary>
     ///     The name of the guild.
     /// </summary>
     [JsonPropertyName("guild_name")]
-    public string GuildName { get; init; }
+    public required string GuildName { get; init; }
 
     /// <summary>
     ///     The ID of the guild.
@@ -26,7 +26,7 @@ public struct GuildInformation
     public bool HasPermissions { get; init; }
 }
 
-public struct InformationData
+public class InformationData
 {
     /// <summary>
     ///     The total number of guilds that the bot is currently in.
@@ -37,11 +37,11 @@ public struct InformationData
     /// <summary>
     ///     The names of all the guilds the bot is connected towards.
     /// </summary>
-    public List<GuildInformation> GuildInformation { get; init; }
+    public required List<GuildInformation> GuildInformation { get; init; }
 
     /// <summary>
     ///     The bot's name and ID together in a string.
     /// </summary>
     [JsonPropertyName("user_information")]
-    public string UserInformation { get; init; }
+    public required string UserInformation { get; init; }
 }

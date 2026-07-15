@@ -81,9 +81,6 @@
         // If the user confirms to delete it,
         // Delete the entry.
 
-        if (!await Js.InvokeAsync<bool>("confirm", "Are you sure you want to delete this entry?"))
-            return;
-
         if (_httpClient == null)
             return;
 
@@ -110,14 +107,18 @@
 {
     <LoadingThrobber ConnectionString="Executing Database Actions..."/>
 }
-<!-- Display database cluster information, since we have a cluster of databases. -->
-<p class="horizontal-alignment">
-    <ImgIcon AssetLocation="@Assets[_databaseIsOk ? "icons/info.png" : "icons/warning.png"]"/>
-    Database Cluster is @(_databaseIsOk ? "Functional" : "Broken!")
-</p>
+else
+{
+    <!-- Display database cluster information, since we have a cluster of databases. -->
+    <p class="horizontal-alignment">
+        <ImgIcon AssetLocation="@Assets["icons/warning.png"]"/>
+        Database Cluster is @(_databaseIsOk ? "Functional" : "Broken. Check your SQL Server Immediately!")
+    </p>
+}
+
 
 <!-- Trusted User Database -->
-<div class="table-container">
+<div class="table-container bg-cover">
     <h3>Trusted Users</h3>
     <table>
         <tr>
@@ -145,17 +146,14 @@
     <!-- This code allows the addition to the trusted user database. -->
     <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddTrustDbEntry">
         <label>
-            User Id
-            <InputNumber @bind-Value="_trustDataModel.UserId" placeholder="User Id of the user to trust..."/>
+            <InputNumber class="btn" @bind-Value="_trustDataModel.UserId"
+                         placeholder="User Id of the user to trust..."/>
         </label>
         <button class="btn" type="submit">Add to Database</button>
     </EditForm>
+    <p class="horizontal-alignment">
+        <ImgIcon AssetLocation="@Assets["icons/info.png"]"/>
+        Each entry is a TRUSTED USER. This means that this user, even if their account is really new, they are trusted.
+    </p>
 </div>
 <!-- Guild Information Database-->
-
-@code {
-}
-
-<div class="table-container">
-    <h3>All Guilds Information</h3>
-</div>

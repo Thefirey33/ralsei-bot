@@ -10,6 +10,7 @@ using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Rest;
 using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
+using ralsei_bot_discord.Scoped;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,10 @@ builder.Services
 builder.Logging
     .ClearProviders()
     .AddConsole();
+
+// Register the scoped response manager.
+builder.Services.AddSingleton<ResponseSystemManager>();
+
 // Register the MySQL databases, so the bot can use them properly.
 builder.AddKeyedMySqlDataSource("ScoreDB");
 builder.AddKeyedMySqlDataSource("TrustDB");

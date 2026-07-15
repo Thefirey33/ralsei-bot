@@ -20,10 +20,7 @@ public class GuildController(RestClient restClient) : ControllerBase
     public async Task<IActionResult> GetAllGuilds()
     {
         var guilds = await restClient
-            .GetCurrentUserGuildsAsync(new GuildsPaginationProperties
-            {
-                BatchSize = CommunicationController.MaximumBatchSize
-            })
+            .GetCurrentUserGuildsAsync()
             .ToListAsync();
 
         var guildConversion = guilds

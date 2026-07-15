@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace ralsei_bot_discord.Types;
 
-public struct GuildData
+public class GuildData
 {
     /// <summary>
     ///     The ID of the guild.
@@ -16,5 +16,5 @@ public struct GuildData
     ///     The name of the guild.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; init; }
+    public required string Name { get; init; }
 }

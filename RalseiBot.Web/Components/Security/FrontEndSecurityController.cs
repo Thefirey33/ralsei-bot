@@ -46,6 +46,7 @@ public class FrontEndSecurityController(
         // If the credentials check failed, don't allow the user to enter.
         if (!response.IsSuccessStatusCode) return Results.Redirect("/Login?Error=InvalidCredentials");
 
+
         // If the token is missing, point it out.
         if (!response.Headers.TryGetValues("Set-Cookie", out var cookies))
             return Results.Redirect("/Login?Error=TokenMissing");

@@ -42,7 +42,7 @@ h1:focus {
 }
 
 .information-panel {
-    border: 1px solid black;
+    border: 1px solid white;
     min-width: 1vw;
     max-width: max-content !important;
     padding: 10px;
@@ -60,8 +60,11 @@ body {
     justify-items: center;
     align-items: center;
     gap: 20px;
+    background-color: black;
+    color: white;
     display: flex;
     flex-direction: column;
+    font-family: 'Determination', monospace;
 }
 
 .top-link-panel {
@@ -79,8 +82,22 @@ body {
     gap: 10px;
 }
 
+.bg-element {
+    background-image: url("wallpapers/background.png");
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    image-rendering: pixelated;
+    background-size: cover;
+    filter: opacity(20%);
+}
+
 .channel-button > .channel-identifier {
-    background-color: white;
+    background-color: black;
+    color: white;
     text-align: left;
     cursor: pointer;
     display: flex;
@@ -101,14 +118,69 @@ body {
     overflow: auto;
     max-height: 50vh;
     flex-direction: column;
-    border: 1px solid black;
+    border: 1px solid white;
     gap: 10px;
     padding: 10px;
 }
 
+.bg-cover {
+    background-color: black;
+    color: white;
+    border: 2px solid white;
+}
+
+.confirmation-box {
+    position: absolute;
+    top: 50%;
+    left: 50%; /** Why CSS, why?!!! */
+    transform: translate(-50%, -50%); /** This is some ugly shit right here! */
+    justify-self: center;
+    margin: auto;
+    padding: 10px;
+    gap: 5px;
+    border-color: red;
+    align-items: center;
+    justify-content: center;
+    max-height: max-content;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+    min-width: 10vw;
+}
+
+.confirmation-box > div {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
+
 .btn {
     cursor: pointer;
-    border: 2px outset;
+    padding: 5px;
+    border: 2px solid white;
+    background-color: black;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    text-align: center;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Determination', monospace;
+}
+
+.btn::before {
+    content: url("funstuff/soul.png");
+    opacity: 0;
+}
+
+.btn:hover {
+    border-color: gold;
+    color: gold;
+}
+
+.btn:hover::before {
+    opacity: 1;
 }
 
 .btn-no-back-highlight {
@@ -128,6 +200,7 @@ body {
 .btn-no-back:active {
     transform: translateY(4px);
 }
+
 
 .horizontal-alignment {
     display: flex;
@@ -178,19 +251,25 @@ table {
 }
 
 table, th, td {
-    border: 1px outset black;
+    border: 1px outset white;
     align-items: center;
     text-align: center;
 }
 
+@font-face {
+    font-family: 'Determination';
+    src: url("/fontfile.ttf");
+}
+
 .table-container {
     padding: 10px;
-    border: 1px outset black;
+    border: 1px outset white;
 }
 
 .table-container > h3 {
     text-align: center;
 }
+
 
 .loading-throbber {
     display: flex;

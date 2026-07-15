@@ -9,13 +9,13 @@ public enum ChannelType
     Thread
 }
 
-public struct ChannelData
+public class ChannelData
 {
     /// <summary>
     ///     The NAME of the channel.
     /// </summary>
     [JsonPropertyName("name")]
-    public string ChannelName { get; init; }
+    public required string ChannelName { get; init; }
 
     /// <summary>
     ///     The ID of the channel.
