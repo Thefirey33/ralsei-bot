@@ -1,0 +1,42 @@
+@rendermode @(new InteractiveServerRenderMode(false))
+@inject GeneralSharedState SharedState
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        SharedState.PropertyChanged += async (sender, args) => { await InvokeAsync(StateHasChanged); };
+    }
+
+    /// <summary>
+    ///     This sets the current state of the question box.
+    /// </summary>
+    /// <param name="state">The state to set to.</param>
+    private void SetQuestionBoxState(GeneralSharedState.QuestionBoxState state)
+    {
+        SharedState.QuestionBox.SetResult(state);
+        SharedState.IsQuestionBoxOpen = false;
+    }
+
+}
+
+@if (SharedState.IsQuestionBoxOpen)
+{
+    <audio src="@Assets["funstuff/last_confirm_before_action.mp3"]" autoplay></audio>
+    <div class="bg-cover confirmation-box">
+        <div>
+            <ImgIcon AssetLocation="@Assets["anim/extreme_warning.gif"]"/>
+            <p>Executive order prepared! Are you still willing to commit?</p>
+        </div>
+        <div>
+            <button type="button" class="btn"
+                    @onclick="() => SetQuestionBoxState(GeneralSharedState.QuestionBoxState.Yes)">
+                DO IT
+            </button>
+            <button type="button" class="btn"
+                    @onclick="() => SetQuestionBoxState(GeneralSharedState.QuestionBoxState.No)">No
+            </button>
+        </div>
+    </div>
+}

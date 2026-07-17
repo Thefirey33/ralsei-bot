@@ -69,8 +69,16 @@ var serverDb
 // The Backend for the Ralsei Bot.
 // Each of the databases will connect to this project, where it will manage it.
 
+var filteringService = builder.AddUvicornApp(
+        "RalseiBotFilteringService",
+        "../RalseiBot.Filter",
+        "main:app")
+    .WithHttpEndpoint(5000, env: "PORT");
+
 var backendService
     = builder.AddProject<RalseiBot_Backend>("RalseiBotBackend")
+        .WithReference(filteringService)
+        .WaitFor(filteringService)
         .WithHttpEndpoint(8080)
         .WithReference(scoreDb) // Reference each
         .WithReference(trustedUser) // Database, so we can

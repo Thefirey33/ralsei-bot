@@ -10,7 +10,8 @@ using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Rest;
 using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
-using ralsei_bot_discord.Scoped;
+using ralsei_bot_discord.Controllers.Services;
+using ralsei_bot_discord.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,17 +27,27 @@ builder.Logging
     .ClearProviders()
     .AddConsole();
 
+// Add the websocketing service.
+builder.Services.AddSignalR()
+    .AddHubOptions<MessagingHub>(options => { options.MaximumReceiveMessageSize = 10 * 1024 * 1024; });
 // Register the scoped response manager.
-builder.Services.AddSingleton<ResponseSystemManager>();
+builder.Services.AddSingleton<ResponseSystemHandler>();
 
 // Register the MySQL databases, so the bot can use them properly.
 builder.AddKeyedMySqlDataSource("ScoreDB");
 builder.AddKeyedMySqlDataSource("TrustDB");
 builder.AddKeyedMySqlDataSource("ServerDB");
 
+// Scoped services that are basically shared implementations between controllers.
+builder.Services
+    .AddScoped<ITrustDbService, TrustDbService>()
+    .AddSingleton<ICommunicationService, CommunicationService>();
+
+builder.Services.AddHttpClient("RalseiBotFilteringService",
+    client => { client.BaseAddress = new Uri("http+https://RalseiBotFilteringService"); });
+
 // Security
 // This is handled using a JWT Bearer Token system, where a cookie will store the specified access token.
-
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -72,7 +83,6 @@ builder.Services.AddAuthentication(options =>
 // Register all the discord and API related services.
 // Don't forget to register the Discord Rest API, it's the most important out of all of them.
 
-
 builder.Services
     .AddDiscordGateway(options =>
     {
@@ -106,6 +116,7 @@ if (app.Environment.IsDevelopment())
 app.UseSwaggerUI(options => { options.SwaggerEndpoint("/openapi/v1.json", "RalseiAPI"); });
 
 app.UseHttpsRedirection();
+app.MapHub<MessagingHub>("/Communication");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();

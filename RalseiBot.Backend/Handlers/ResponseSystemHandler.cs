@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-namespace ralsei_bot_discord.Scoped;
+namespace ralsei_bot_discord.Handlers;
 
-public class ResponseSystemManager
+public class ResponseSystemHandler
 {
     /// <summary>
     ///     These specify the responses that Ralsei can give.
@@ -33,7 +33,22 @@ public class ResponseSystemManager
         /// <summary>
         ///     When Ralsei is called cute.
         /// </summary>
-        CalledCute
+        CalledCute,
+
+        /// <summary>
+        ///     When a user is kicked.
+        /// </summary>
+        Kicked,
+
+        /// <summary>
+        ///     When a user is banned.
+        /// </summary>
+        Banned,
+
+        /// <summary>
+        ///     When messages are purged.
+        /// </summary>
+        RuleViolation
     }
 
     /// <summary>
@@ -41,7 +56,7 @@ public class ResponseSystemManager
     /// </summary>
     private readonly LinkedList<Dictionary<ResponseTypes, List<string>>> _responses = [];
 
-    public ResponseSystemManager(ILogger<ResponseSystemManager> logger)
+    public ResponseSystemHandler(ILogger<ResponseSystemHandler> logger)
     {
         // Import the responses that are needed.
         foreach (var directory in Directory.GetFiles("./ResponseResources"))

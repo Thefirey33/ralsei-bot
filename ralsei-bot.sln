@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RalseiBot.ServiceDefaults",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RalseiBot.Web", "RalseiBot.Web\RalseiBot.Web.csproj", "{9355D463-365C-42D5-9B88-823C78926765}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RalseiBot.Filter", "RalseiBot.Filter", "{66DBCE9E-B6C2-43A5-ABDE-C4944B95CAB9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

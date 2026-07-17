@@ -37,11 +37,11 @@
     </p>
 }
 
-<!-- The Login Entry Box -->
+@* The Login Entry Box *@
 <form class="entry-box" action="/FrontEndSecurity/Login" method="post">
     <AntiforgeryToken/>
 
-    <!-- The URL Returning Argument, for the URL to return back to it's primary position. -->
+    @* The URL Returning Argument, for the URL to return back to it's primary position. *@
     <input type="hidden" name="returnUrl" value="@ReturnUrl"/>
 
     <input placeholder="Enter username..." type="text" name="username" class="form-control" required/>

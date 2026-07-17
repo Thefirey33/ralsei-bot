@@ -1,4 +1,5 @@
 ﻿FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
+FROM python
 USER $APP_UID
 WORKDIR /app
 

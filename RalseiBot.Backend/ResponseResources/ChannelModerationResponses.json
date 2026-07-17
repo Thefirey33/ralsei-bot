@@ -1,8 +1,25 @@
 {
   "LockChannel": [
-    "oops.. channel is locked!"
+    "oops.. channel is locked!",
+    "lockdown!!!",
+    "guys, the channel's locked now...",
+    "lock lock lock...",
+    "locking down!!!"
   ],
   "UnlockChannel": [
-    "channel unlocked now..."
+    "channel unlocked now...",
+    "unlocked!!!",
+    "you can enter now guys!!",
+    "unlocked the door, come in!!",
+    "it's unlocked!!"
+  ],
+  "RuleViolation": [
+    "oop!! you violated the rules...",
+    "rule violation!!",
+    "you violated the rules, sorry...",
+    "you broke the rules!!",
+    "unfortunately, you broke the rules, so i have to act...",
+    "sorry.. you broke the rules...",
+    "sorry... rule breaking..."
   ]
 }

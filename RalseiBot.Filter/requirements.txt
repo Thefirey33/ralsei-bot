@@ -1,0 +1,9 @@
+# API
+fastapi[standard]
+pydantic
+
+# Classifiers & Content Detection
+torch
+transformers
+pillow
+opencv-python

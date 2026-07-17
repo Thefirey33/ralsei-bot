@@ -1,15 +1,19 @@
 @page "/Communication"
-@using System.Diagnostics
+@rendermode InteractiveServer
+@inject IHttpClientFactory ClientFactory
 @using Microsoft.AspNetCore.Authorization
 @using ralsei_bot_discord.Types
 @using RalseiBot.Web.Components.Widgets
-@rendermode InteractiveServer
-@inject IHttpClientFactory ClientFactory
+@implements IAsyncDisposable
 @inject ILogger<Communication> Logger
 @inject GeneralSharedState SharedState
 @inject IJSRuntime Js
 
 @attribute [Authorize]
+
+
+@* ReSharper, it is not the time to bitch about something that Blazor actually requires. *@
+@* ReSharper disable MemberCanBePrivate.Global *@
 
 @code {
 
@@ -21,7 +25,8 @@
     /// <summary>
     ///     All the channels that the bot can reference.
     /// </summary>
-    private List<ChannelData>? _channels;
+    [PersistentState(AllowUpdates = true)]
+    public List<ChannelData>? Channels { get; set; }
 
     /// <summary>
     ///     The selected ID that the user has selected from the list.
@@ -31,7 +36,7 @@
     /// <summary>
     ///     If the API is busy loading tasks, this boolean will be set to true.
     /// </summary>
-    private bool _busyLoading = true;
+    private bool BusyLoading => Channels == null || !Channels.Any();
 
     /// <summary>
     ///     When the bot initializes, initialize the first guild immediately.
@@ -40,12 +45,15 @@
     {
         _client = ClientFactory.CreateClient("RalseiBotBackend");
 
-        _busyLoading = true;
+        if (Channels != null)
+        {
+            return;
+        }
 
         // Attempt to retrieve all guild data.
         // While receiving the data, display the loading throbber for the user so they don't spam the API with too many requests,
         // which would result in a rate limit.
-
+        
         await SharedState.CheckIfImported(_client);
         await CreateChannelsGuild(SharedState.CurrentGuilds.First().Id);
     }
@@ -56,12 +64,9 @@
     /// <param name="guildId">The ID of the guild.</param>
     private async Task CreateChannelsGuild(ulong guildId)
     {
-        _busyLoading = true;
         if (_client == null)
             return;
-        _channels = await _client.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
-        Debug.Assert(_channels != null, nameof(_channels) + " != null");
-        _busyLoading = false;
+        Channels = await _client.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
     }
 
     /// <summary>
@@ -80,7 +85,19 @@
         await Js.InvokeVoidAsync("navigator.clipboard.writeText", guildId);
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        if (_client is IAsyncDisposable clientAsyncDisposable)
+            await clientAsyncDisposable.DisposeAsync();
+        else
+        {
+            _client?.Dispose();
+        }
+    }
+
 }
+
+@* ReSharper restore MemberCanBePrivate.Global *@
 
 
 <div>
@@ -92,7 +109,7 @@
 
 
     <div class="channel-selection-panel bg-cover">
-        @if (!_busyLoading && _channels != null)
+        @if (!BusyLoading)
         {
             <div class="horizontal-alignment">
                 <select name="PortalSelectionBox" @bind="_selectedId" class="btn">
@@ -102,26 +119,32 @@
                     }
                 </select>
                 <button class="btn" @onclick="ReloadChannelList">To Portal</button>
-                <!-- Add to clipboard -->
-                <button class="btn-no-back" @onclick="async () => await ExecuteClipboard(_channels.First().GuildId)">
+                @* Add to clipboard *@
+                <button class="btn-no-back" @onclick="async () => await ExecuteClipboard(Channels.First().GuildId)">
                     <ImgIcon AssetLocation="@Assets["icons/clipboard.png"]"/>
                 </button>
             </div>
 
-            <!-- Channel selection section -->
-            @foreach (var channel in _channels)
+            @* Channel selection section *@
+            @if (Channels != null)
             {
-                <div class="channel-button">
-                    <a href="/Channel/@(channel.ChannelId)" class="channel-identifier">
-                        <img
-                            src="@Assets[channel.TypeChannel == ChannelType.Text ? "icons/text_channel.png" : "icons/voice_channel.png"]"
-                            alt="Channel Type Icon"
-                            width="16"
-                            height="16"/>
-                        @(channel.ChannelName)
-                    </a>
-                    <ActionPanel Client="_client" Id="@(channel.ChannelId)"/>
-                </div>
+                foreach (var channel in Channels)
+                {
+                    <div class="channel-button">
+                        <a href="/Channel/@channel.ChannelId" class="channel-identifier">
+                            <img
+                                src="@Assets[channel.TypeChannel == ChannelType.Text ? "icons/text_channel.png" : "icons/voice_channel.png"]"
+                                alt="Channel Type Icon"
+                                width="16"
+                                height="16"/>
+                            @channel.ChannelName
+                        </a>
+                        @if (_client != null)
+                        {
+                            <ActionPanel Client="_client" Id="@(channel.ChannelId)"/>
+                        }
+                    </div>
+                }
             }
         }
         else

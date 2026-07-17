@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="19d21817-1eb3-478b-9d94-08d07c4a2eac" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/Services/CommunicationService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/Services/TrustDbService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Backend/Handlers/GuildCommunicationHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Backend/Handlers/GuildMemberHandler.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Backend/Types/UserData.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Database.razor.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/RegexHelper.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Widgets/ConfirmationBox.razor" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Widgets/MessageParser.razor" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/anim/extreme_warning.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/comsounds/joincom.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/comsounds/mesgcom.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/comsounds/sendcom.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/funstuff/aqua_wave.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/icons/connection.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/icons/purge.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/icons/send_message.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.ralsei-bot/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ralsei-bot/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.ralsei-bot/.idea/dictionaries/project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ralsei-bot/.idea/dictionaries/project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.ralsei-bot/.idea/sqldialects.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ralsei-bot/.idea/sqldialects.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/CommunicationController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/CommunicationController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/Database/TrustDbController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/Database/TrustDbController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/GuildController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/GuildController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/InformationController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Controllers/InformationController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/RalseiBot.Backend.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/RalseiBot.Backend.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/ResponseResources/ChannelModerationResponses.json" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/ResponseResources/ChannelModerationResponses.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Scoped/ResponseSystemManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Handlers/ResponseSystemHandler.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Security/JwtTokenService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Security/JwtTokenService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Types/Database/DefaultResult.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Types/Database/DefaultResult.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Types/MessageData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Types/MessageData.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Types/Requests/LoginRequest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Types/Requests/LoginRequest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Backend/Types/Requests/MessageRequest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Backend/Types/Requests/MessageRequest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/App.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/App.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/GeneralSharedState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/GeneralSharedState.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Layout/MainLayout.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Layout/MainLayout.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Channel.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Channel.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Channel.razor.css" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Channel.razor.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Communication.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Communication.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Database.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Communication/Database.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Home.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Home.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Login.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Pages/Login.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Widgets/ActionPanel.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Widgets/ActionPanel.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Components/Widgets/TopNavigationPanel.razor" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Components/Widgets/TopNavigationPanel.razor" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/RalseiBot.Web.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/RalseiBot.Web.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/app.css" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/app.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/funstuff/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/funstuff/LICENSE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RalseiBot.Web/wwwroot/icons/extreme_warning.gif" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ralsei-bot.sln" beforeDir="false" afterPath="$PROJECT_DIR$/ralsei-bot.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ralsei-bot.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/ralsei-bot.sln.DotSettings.user" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="3Gbb83wWZuwBKOjHAox42gBeodc" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-c59985aa861c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.24374.152" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="19d21817-1eb3-478b-9d94-08d07c4a2eac" name="Changes" comment="" />
+      <created>1784243054438</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1784243054438</updated>
+      <workItem from="1784243056316" duration="5000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

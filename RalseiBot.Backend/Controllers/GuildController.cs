@@ -10,8 +10,13 @@ namespace ralsei_bot_discord.Controllers;
 [ApiController]
 [Authorize]
 [Route("[controller]")]
-public class GuildController(RestClient restClient) : ControllerBase
+public class GuildController(RestClient restClient, IHttpClientFactory httpClientFactory) : ControllerBase
 {
+    /// <summary>
+    ///     The emoji requesting HTTP Client.
+    /// </summary>
+    private readonly HttpClient _emojiRequester = httpClientFactory.CreateClient("EmojiRequester");
+
     /// <summary>
     ///     Attempt to retrieve all the guilds the bot has.
     /// </summary>

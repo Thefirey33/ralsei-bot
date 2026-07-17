@@ -1,6 +1,6 @@
 @inject IJSRuntime JsRuntime;
 @rendermode InteractiveServer
-@inject IHttpClientFactory ClientFactory
+@inject GeneralSharedState SharedState
 
 @code {
 
@@ -14,31 +14,18 @@
     ///     The current HTTP client.
     /// </summary>
     [Parameter]
-    public HttpClient? Client { get; set; }
-
-    /// <summary>
-    ///     Should the prompt be asked?
-    /// </summary>
-    private bool _askQuestion;
-
-    /// <summary>
-    ///     When an action is being executed, the loading throbber will be shown thanks to this boolean tag.
-    /// </summary>
-    private bool _executingAction;
+    public required HttpClient Client { get; set; }
 
 
-    private async Task LockChannel(ulong channelId)
+    private async Task LockChannel()
     {
-        // Stop the language server from bitching.
-        if (Client == null)
-            return;
+        SharedState.OpenQuestionBox();
 
-        var message = new HttpRequestMessage(HttpMethod.Post, $"Communication/messages/lock/{channelId}");
-        _executingAction = true;
-        await Client.SendAsync(message);
-
-        _askQuestion = false;
-        _executingAction = false;
+        var result = await SharedState.QuestionBox.Task;
+        if (result == GeneralSharedState.QuestionBoxState.Yes)
+        {
+            await Client.PostAsync($"Communication/messages/lock/{Id}", null);
+        }
     }
 
     /// <summary>
@@ -52,36 +39,10 @@
 }
 
 
-@if (_askQuestion)
-{
-    <audio src="@Assets["funstuff/last_confirm_before_action.mp3"]" autoplay></audio>
-    <div class="bg-cover confirmation-box">
-        <div>
-            <ImgIcon AssetLocation="@Assets["icons/extreme_warning.gif"]"/>
-            <p>Executive order prepared! Are you still willing to commit?
-                <br/>
-                <!-- The very cool <br/> element, because it would be too much HTML garbage trying to do this with two <p>'s. -->
-                <em>Channel ID: @(Id)</em>
-            </p>
-        </div>
-        <div>
-            @if (_executingAction)
-            {
-                <LoadingThrobber ConnectionString="Executing Action..."/>
-            }
-            else
-            {
-                <button class="btn" @onclick="async () => await LockChannel(Id)">DO IT</button>
-                <button class="btn" @onclick="() => _askQuestion = false">No</button>
-            }
-        </div>
-    </div>
-}
 
-
-<!-- This action is supposed to lock the channel completely for users by setting the permission flag for sending messages to false. -->
-<button title="Click here to lock or unlock this channel." @onclick="() => { _askQuestion = true; }"
-        class="btn-no-back">
+@* This action is supposed to lock the channel completely for users by setting the permission flag for sending messages to false. *@
+<button type="button" title="Click here to lock or unlock this channel." class="btn-no-back"
+        @onclick="LockChannel">
     <img
         src="@Assets["icons/lock.png"]"
         alt="Lock"
@@ -90,8 +51,8 @@
     />
 </button>
 
-<!-- This action is supposed to copy the ID of the channel. -->
-<button @onclick="CopyToClipboard" title="Click here to copy the ID of this channel." class="btn-no-back">
+@* This action is supposed to copy the ID of the channel. *@
+<button type="button" @onclick="CopyToClipboard" title="Click here to copy the ID of this channel." class="btn-no-back">
     <img
         src="@Assets["icons/clipboard.png"]"
         alt="Clipboard"

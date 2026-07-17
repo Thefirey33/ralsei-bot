@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
+using ralsei_bot_discord.Controllers.Services;
 using ralsei_bot_discord.Types.Database;
 
 namespace ralsei_bot_discord.Controllers.Database;
 
 [ApiController]
 [Route("[controller]")]
-public class TrustDbController([FromKeyedServices("TrustDB")] MySqlDataSource trustDbSource) : ControllerBase
+public class TrustDbController([FromKeyedServices("TrustDB")] MySqlDataSource trustDbSource, ITrustDbService service)
+    : ControllerBase
 {
     /// <summary>
     ///     Get all the trusted users in the Database.
@@ -15,60 +17,31 @@ public class TrustDbController([FromKeyedServices("TrustDB")] MySqlDataSource tr
     [HttpGet]
     public async Task<IActionResult> GetAllTrusts()
     {
-        var mySqlConnection = await trustDbSource.OpenConnectionAsync();
-
-        var trustData = new List<TrustData>();
-
-        var mySqlCommand = new MySqlCommand("SELECT * FROM users;", mySqlConnection);
-        var readers = await mySqlCommand.ExecuteReaderAsync();
-
-        while (await readers.ReadAsync())
-            trustData.Add(new TrustData
-            {
-                Id = readers.GetInt32("id"),
-                UserId = readers.GetInt64("user_id")
-            });
-
-        await mySqlConnection.CloseAsync();
-
-        return Ok(trustData);
+        var result = await service.GetAllTrusts();
+        return Ok(result);
     }
 
     /// <summary>
     ///     Add a trusted user into the database.
     /// </summary>
-    /// <param name="userId">The User ID of the trusted user.</param>
+    /// <param name="data">Request Data</param>
     /// <returns></returns>
     [HttpPost]
-    public async Task<IActionResult> PostUser(TrustRequestData userId)
+    public async Task<IActionResult> PostUser(TrustRequestData data)
     {
-        var mySqlConnection = await trustDbSource.OpenConnectionAsync();
-        var mySqlCommand = new MySqlCommand($"INSERT INTO users(user_id) VALUES ({userId.UserId});", mySqlConnection);
-        var result = await mySqlCommand.ExecuteNonQueryAsync();
-        await mySqlConnection.CloseAsync();
-
-        return Ok(new DefaultResult
-        {
-            Message = $"{result} columns affected."
-        });
+        await service.PostUser(data);
+        return Ok();
     }
 
     /// <summary>
     ///     Delete something from the table that matches a specified id.
     /// </summary>
-    /// <param name="id">The ID of the entry.</param>
+    /// <param name="data">Request Data</param>
     /// <returns>The number of columns affected.</returns>
     [HttpDelete]
-    public async Task<IActionResult> DeleteUser([FromBody] int id)
+    public async Task<IActionResult> DeleteUser(TrustRequestData data)
     {
-        var mySqlConnection = await trustDbSource.OpenConnectionAsync();
-        var mySqlCommand = new MySqlCommand($"DELETE FROM users WHERE id={id};", mySqlConnection);
-        var result = await mySqlCommand.ExecuteNonQueryAsync();
-        await mySqlConnection.CloseAsync();
-
-        return Ok(new DefaultResult
-        {
-            Message = $"{result} columns affected."
-        });
+        await service.DeleteUser(data);
+        return Ok();
     }
 }

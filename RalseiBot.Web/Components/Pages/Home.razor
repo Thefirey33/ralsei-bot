@@ -21,7 +21,7 @@
     }
 }
 
-<!-- Information Panel Section: Displays information about the bot -->
+@* Information Panel Section: Displays information about the bot *@
 <div class="information-panel bg-cover">
     <p class="information-label">
         <img src="@Assets["icons/info.png"]" alt="Information" width="32" height="32" draggable="false"/>
@@ -39,12 +39,12 @@
                 <ul>
                     @foreach (var guildInformation in _data?.GuildInformation!)
                     {
-                        <!-- Guild name and Guild ID displayed -->
+                        @* Guild name and Guild ID displayed *@
                         <li>@(guildInformation.GuildName)
                             <em>
                                 (@(guildInformation.GuildId))
                             </em>
-                            <!-- If the specified guild included all the permissions for Ralsei? -->
+                            @* If the specified guild included all the permissions for Ralsei? *@
                             <p class="align-center"
                                style="background-color: @(guildInformation.HasPermissions ? "green" : "red")">
                                 @(guildInformation.HasPermissions ? "Active" : "No Permissions")

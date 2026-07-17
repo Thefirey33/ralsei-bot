@@ -32,4 +32,16 @@ public class InformationController(RestClient restClient) : ControllerBase
             }).ToList()
         });
     }
+
+    /// <summary>
+    ///     This gets user information.
+    /// </summary>
+    [HttpGet("user")]
+    public async Task<IActionResult> GetId()
+    {
+        var currentUser = await restClient
+            .GetCurrentUserAsync();
+
+        return Ok(UserData.GetFromUser(currentUser));
+    }
 }

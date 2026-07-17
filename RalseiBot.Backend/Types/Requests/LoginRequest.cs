@@ -7,7 +7,7 @@ public class LoginRequest
     /// <summary>
     /// </summary>
     [Required]
-    public string Username { get; set; }
+    public required string Username { get; set; }
 
-    [Required] public string Password { get; set; }
+    [Required] public required string Password { get; set; }
 }

@@ -1,11 +1,20 @@
 @page "/Channel/{Id:long}"
-@using Microsoft.AspNetCore.Authorization
-@using ralsei_bot_discord.Types
-@using RalseiBot.Web.Components.Widgets
+@* Disable pre-rendering, because otherwise the whole program kills itself. *@
+@rendermode @(new InteractiveServerRenderMode(false))
 @inject IHttpClientFactory ClientFactory
+@inject IJSRuntime Js
+@inject GeneralSharedState SharedState
 @inject ILogger<Channel> Logger;
-@rendermode InteractiveServer
+@using System.Text.Json
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+@using ralsei_bot_discord.Types
+@using ralsei_bot_discord.Types.Requests
+@using RalseiBot.Web.Components.Widgets
+@implements IAsyncDisposable
 @attribute [Authorize]
+
+@* ReSharper disable MemberCanBePrivate.Global *@
 
 @code {
 
@@ -21,48 +30,271 @@
     private HttpClient? Client { get; set; }
 
     /// <summary>
-    ///     The base http client handler for the checker.
-    /// </summary>
-    private HttpClientHandler _httpClientHandler = new()
-    {
-        AllowAutoRedirect = false
-    };
-
-    /// <summary>
     ///     The current message data of the user.
     /// </summary>
-    private LinkedList<MessageData>? _messageData;
+    [PersistentState(AllowUpdates = true)]
+    public List<MessageData>? MessageData { get; set; }
+
+    /// <summary>
+    ///     The model for the message sending request.
+    /// </summary>
+    private readonly MessageRequest _messageModel = new()
+    {
+        Message = string.Empty
+    };
 
     /// <summary>
     ///     Is the bot busy pre-fetching messages?
     /// </summary>
-    private bool _busyPreFetching;
+    private bool BusyPreFetching => MessageData == null && UserData == null;
+
+    /// <summary>
+    ///     The connection to the communication hub.
+    /// </summary>
+    public HubConnection? HubConnection { get; set; }
+
+    /// <summary>
+    ///     When sending a message, this state will hide the message bar.
+    /// </summary>
+    private bool SendingMessage { get; set; }
+
+    /// <summary>
+    ///     The current user data.
+    /// </summary>
+    [PersistentState(AllowUpdates = true)]
+    public UserData? UserData { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        _busyPreFetching = true;
+        var connectionUrl = Environment.GetEnvironmentVariable("services__RalseiBotBackend__http__0");
+
+
         Client = ClientFactory.CreateClient("RalseiBotBackend");
-        _messageData = await Client.GetFromJsonAsync<LinkedList<MessageData>>($"Communication/messages/{Id}");
-        _busyPreFetching = false;
+        MessageData ??= await Client.GetFromJsonAsync<List<MessageData>>($"Communication/messages/{Id}");
+        UserData ??= await Client.GetFromJsonAsync<UserData>("Information/user");
+
+        // If the MessageData and UserData is null, do not create a communication hub.
+        if (MessageData == null || UserData == null)
+            return;
+
+        HubConnection = new HubConnectionBuilder()
+            .WithUrl($"{connectionUrl}/Communication")
+            .WithAutomaticReconnect()
+            .Build();
+
+        await SetupHub();
+
+        Logger.LogInformation("Connected to Communications Hub with ID: {Id}", HubConnection.ConnectionId);
+    }
+
+    /// <summary>
+    ///     The hub setup function has been moved here because it was getting extremely long.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">When the specified message action is out of bounds.</exception>
+    public async Task SetupHub()
+    {
+        // When a message is created, this method is called.
+        if (HubConnection == null || UserData == null)
+            return;
+
+        HubConnection.On<string>("MessageCreationSend", async message =>
+        {
+            Logger.LogInformation("Received Message: {@message}", message);
+            var deserializedData = JsonSerializer.Deserialize<MessageData>(message);
+            if (deserializedData == null || Convert.ToInt64(deserializedData.ChannelId) != Id || MessageData == null)
+                return;
+
+            // Switch between message actions, that execute different tasks.
+            switch (deserializedData.MessageAction)
+            {
+                case ralsei_bot_discord.Types.MessageData.ActionType.Delete:
+                    var dataRef = MessageData.First(data => deserializedData.Id == data.Id);
+                    MessageData.Remove(dataRef);
+                    break;
+                case ralsei_bot_discord.Types.MessageData.ActionType.Create:
+                    MessageData.Add(deserializedData);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            // Trigger the specified sound action based on what user it is.
+            await Js.InvokeVoidAsync("messageReceivedSound",
+                deserializedData.Author.Id == UserData.Id
+                    ? "send_sound"
+                    : "received_sound");
+
+            await InvokeAsync(StateHasChanged);
+        });
+
+        // When a message is deleted, this method is called.
+        HubConnection.On<ulong>("MessageDeletionSend", async messageId =>
+        {
+            MessageData?.RemoveAll(data => data.Id == messageId);
+            await InvokeAsync(StateHasChanged);
+        });
+
+        HubConnection.On<List<ulong>>("MessageDeletionBulkSend", async messages =>
+        {
+            MessageData?.RemoveAll(data => messages.Contains(data.Id));
+            await InvokeAsync(StateHasChanged);
+        });
+
+        await HubConnection.StartAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Scroll down to the bottom after the messages are added.
+        await Js.InvokeVoidAsync("scrollToBottom");
+    }
+
+    /// <summary>
+    ///     Copy to clipboard for the specified item.
+    /// </summary>
+    /// <param name="id">The message ID.</param>
+    private void CopyIdMessageClipboard(ulong id)
+    {
+        Js.InvokeVoidAsync("navigator.clipboard.writeText", id);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        MessageData?.Clear();
+        if (HubConnection != null) await HubConnection.DisposeAsync();
+        if (Client != null) await CastAndDispose(Client);
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
+    }
+
+    /// <summary>
+    ///     This method will purge the specified messages.
+    /// </summary>
+    /// <param name="messageRequest">The message request.</param>
+    private async Task PurgeUntil(MessageRequest messageRequest)
+    {
+        if (Client == null)
+            return;
+
+        SharedState.OpenQuestionBox();
+
+        var result = await SharedState.QuestionBox.Task;
+        if (result == GeneralSharedState.QuestionBoxState.Yes)
+            await Client.PostAsJsonAsync("Communication/messages/purge", messageRequest);
+    }
+
+    /// <summary>
+    ///     This attempts to send/reply with a message to the specified USER on a CHANNEL.
+    /// </summary>
+    private async Task SendMessageToChannel()
+    {
+        if (Client == null)
+            return;
+
+        _messageModel.ChannelId = Convert.ToUInt64(Id);
+        SendingMessage = true;
+        Logger.LogInformation("Sending request to backend to send message: {MessageData}", _messageModel);
+        await Client.PostAsJsonAsync("Communication/messages/send", _messageModel);
+
+        // Back to default values.
+        _messageModel.Message = string.Empty;
+        _messageModel.ResponseTo = null;
+        SendingMessage = false;
     }
 
 }
 
-<div class="bg-cover chat-box">
-    @if (!(_messageData == null || _busyPreFetching))
-    {
-        @foreach (var msgWithIndx in _messageData.Index())
+@* ReSharper restore MemberCanBePrivate.Global *@
+
+<audio src="@Assets["comsounds/joincom.mp3"]" autoplay></audio>
+<audio src="@Assets["comsounds/sendcom.mp3"]" id="send_sound"></audio>
+<audio src="@Assets["comsounds/mesgcom.mp3"]" id="received_sound"></audio>
+
+<script>
+    // We always try to escape JavaScript,
+    // But JavaScript finds us.
+    // ~ Albert Einstein
+
+    /**
+     * This plays a sound file to the client.
+     * id The id of the sound.
+     */
+    function messageReceivedSound(id) {
+        const element = document.getElementById(id);
+        element.currentTime = 0;
+        element.play();
+    }
+
+    /**
+     * This scrolls the chatbox to the bottom.
+     */
+    function scrollToBottom() {
+        const element = document.getElementById("chat")
+        element.scrollTo(0, element.scrollHeight)
+    }
+</script>
+
+@* This is the general chat box. *@
+@if (HubConnection != null)
+{
+    <div class="horizontal-alignment">
+        <p>Session ID: @HubConnection.ConnectionId</p>
+        @switch (HubConnection.State)
         {
-            <div class="msg-box">
+            case HubConnectionState.Connected:
+                <p class="horizontal-alignment">
+                    <ImgIcon AssetLocation="@Assets["icons/connection.png"]"/>
+                    @HubConnection.State
+                </p>
+                break;
+            case HubConnectionState.Disconnected:
+            case HubConnectionState.Connecting:
+            case HubConnectionState.Reconnecting:
+                <LoadingThrobber ConnectionString="Connecting..."/>
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    </div>
+}
+
+<div class="bg-cover chat-box" id="chat">
+    @if (!(MessageData == null || BusyPreFetching))
+    {
+        @if (!MessageData.Any())
+        {
+            <p>Nothing in this channel!</p>
+        }
+
+        @foreach (var (index, message) in MessageData.Index())
+        {
+            <div @key="index" class="msg-box">
                 @{
                     // Retrieve the actual message from the indexer.
-                    var message = msgWithIndx.Item;
+
+                    // The message before this message.
+                    var messageBefore = MessageData
+                        .Index()
+                        .Where(data => data.Index == index - 1)
+                        .Select(tuple => tuple.Item.Author.Id == message.Author.Id)
+                        .FirstOrDefault();
 
                     // Check if there's a available reply message.
                     MessageData? messageData = null;
                     var sourceMessage =
-                        _messageData.Where(data => data.Id == message.ReplyTo)
+                        MessageData.Where(data => data.Id == message.ReplyTo)
                             .ToList();
+
+                    // If the current person is Ralsei, make it clear.
+                    var isUserCssClass = UserData != null && message.Author.Id == UserData.Id ? "is-me-author" : string.Empty;
 
                     // Finally show the reply message.
                     if (sourceMessage.Any())
@@ -72,28 +304,46 @@
                 @if (messageData != null)
                 {
                     <div class="horizontal-alignment reply-box">
-                        @{
-                            // Check if it's an URL, if it is, highlight it in blue.
-                            var isUrl = Uri.TryCreate(messageData.Text, UriKind.Absolute, out _);
-                        }
                         <ImgIcon AssetLocation="@Assets["icons/reply_icon.png"]"/>
                         <ImgIcon AssetLocation="@(messageData.ProfilePictureLink)"/>
-                        <p>@messageData.Author</p>
-                        <em class="@(isUrl ? "url-text" : "")">@(messageData.Attachments.Count > 0 ? "(Attachment Provided)" : messageData.Text)</em>
+                        <p class="@isUserCssClass">@messageData.Author.DisplayName</p>
+
+                        <MessageParser
+                            MessageContent="@(messageData.Attachments.Count > 0 ? "(Attachment Provided)" : messageData.Text)"/>
                     </div>
                 }
 
                 <div class="top-profile-header">
-                    <ImgIcon AssetLocation="@message.ProfilePictureLink"/>
+
                     <div class="msg-content">
                         <div class="horizontal-alignment">
-                            <p>@message.Author</p>
-                            <em>@message.CreatedAt</em>
+                            @if (!messageBefore)
+                            {
+                                <ImgIcon AssetLocation="@message.ProfilePictureLink"/>
+                                <p class="@isUserCssClass">@message.Author.DisplayName</p>
+                                @* Display the created time of the message in the user's local time. *@
+                                <em>@message.CreatedAt.ToLocalTime()</em>
+                            }
+                            <em class="half-visible">(@message.Id)</em>
+                            <button class="btn-no-back"
+                                    @onclick="() => CopyIdMessageClipboard(message.Id)">
+                                <ImgIcon AssetLocation="@Assets["icons/clipboard.png"]"/>
+                            </button>
+                            @* This will reply to a message. *@
+                            <button class="btn-no-back" @onclick="() => _messageModel.ResponseTo = message.Id">
+                                <ImgIcon AssetLocation="@Assets["icons/reply_icon.png"]"/>
+                            </button>
+                            @* This will purge all messages until it hits this message. *@
+                            <button class="btn-no-back"
+                                    @onclick="() => PurgeUntil(MessageRequest.FromMessageData(message))">
+                                <ImgIcon AssetLocation="@Assets["icons/purge.png"]"/>
+                            </button>
                         </div>
 
                         @if (!message.Embeds.Any())
                         {
-                            <p>@message.Text</p>
+                            // The content of the message will be displayed here.
+                            <MessageParser GuildId="@message.GuildId" MessageContent="@message.Text"/>
                         }
 
 
@@ -121,7 +371,7 @@
                                     break;
                                 case DataEmbedType.Gifv:
                                     // Element for "GIF VIDEOS"
-                                    // Discord stores GIFs as MP4 files, so we gotta do it like this.
+                                    // Discord stores GIFs as MP4 files, so we have to do it like this.
                                     <video src="@embed.Url" width="200" height="200" autoplay loop></video>
                                     break;
                                 case DataEmbedType.Rich:
@@ -133,10 +383,12 @@
                                     }
 
                                     break;
+
+                                // General fallbacks.
                                 case DataEmbedType.Article:
                                 case DataEmbedType.Link:
                                 case DataEmbedType.PollResult:
-                                    <a href="@embed.Url" class="btn">Click here to see attachment</a>
+                                    <a href="@embed.Url" class="btn">Click here to see Embedded Content.</a>
                                     break;
                                 default:
                                     throw new ArgumentOutOfRangeException();
@@ -146,7 +398,6 @@
 
                         @foreach (var attachment in message.Attachments)
                         {
-                            // TODO: This shit's still broken!
                             @if (attachment.FileType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
                             {
                                 <img src="@attachment.Url" alt="Image" width="200" height="200"/>
@@ -164,6 +415,40 @@
     }
     else
     {
-        <LoadingThrobber ConnectionString="Loading Messages..."/>
+        <LoadingThrobber ConnectionString="Entering Portal..."/>
     }
 </div>
+
+@* This element displays the current connection state of the connection. *@
+
+
+<div class="horizontal-alignment">
+    @if (_messageModel.ResponseTo != null)
+    {
+        <button class="btn-no-back" @onclick="() => _messageModel.ResponseTo = null">
+            <ImgIcon AssetLocation="@Assets["icons/delete.png"]"/>
+        </button>
+        <p>Will send a reply!</p>
+    }
+</div>
+
+@if (!SendingMessage)
+{
+    <div class="horizontal-alignment message-alignment">
+        <EditForm Model="_messageModel" class="horizontal-alignment" OnValidSubmit="SendMessageToChannel">
+            <InputTextArea @bind-Value="_messageModel.Message" class="message-send-box"
+                           placeholder="Enter message here..."/>
+            <button type="submit" class="btn-no-back">
+                <ImgIcon AssetLocation="@Assets["icons/send_message.png"]"/>
+            </button>
+            @if (Client != null)
+            {
+                <ActionPanel Client="Client" Id="Convert.ToUInt64(Id)"/>
+            }
+        </EditForm>
+    </div>
+}
+else
+{
+    <LoadingThrobber ConnectionString="Sending message, please wait..."/>
+}

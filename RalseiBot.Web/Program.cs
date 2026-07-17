@@ -37,7 +37,12 @@ builder.Services.AddRazorComponents()
 builder.Services.AddTransient<CookieForwardingHandler>();
 
 builder.Services.AddHttpClient("RalseiBotBackend",
-        client => { client.BaseAddress = new Uri("https+http://RalseiBotBackend"); })
+        client =>
+        {
+            client.BaseAddress = new Uri("https+http://RalseiBotBackend");
+            // Allow a better time-out, because the Discord API is notoriously slow to respond at times.
+            client.Timeout = TimeSpan.FromHours(5);
+        })
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
     {
         UseCookies = false
@@ -59,6 +64,7 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 app.MapControllers();
+app.UseWebSockets();
 app.UseAntiforgery();
 
 app.UseAuthentication();

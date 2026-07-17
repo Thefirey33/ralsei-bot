@@ -1,0 +1,109 @@
+using System.Text.Json;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR;
+using NetCord;
+using NetCord.Gateway;
+using NetCord.Hosting.Gateway;
+using ralsei_bot_discord.Controllers.Services;
+using ralsei_bot_discord.Types;
+using ralsei_bot_discord.Types.Requests;
+
+namespace ralsei_bot_discord.Handlers;
+
+public class GuildCommunicationHandler(
+    IHubContext<MessagingHub> context,
+    ILogger<GuildCommunicationHandler> logger,
+    IHttpClientFactory httpClientFactory,
+    ResponseSystemHandler responseSystemHandler,
+    ICommunicationService communicationService)
+    : IMessageCreateGatewayHandler, IMessageDeleteGatewayHandler, IMessageDeleteBulkGatewayHandler
+{
+    /// <summary>
+    ///     The HTTP Client for communicating with the Python Filtering Service.
+    /// </summary>
+    private readonly HttpClient? _httpClient = httpClientFactory.CreateClient("RalseiBotFilteringService");
+
+    [Inject] public ICommunicationService CommunicationService { get; set; } = communicationService;
+
+    /// <summary>
+    ///     Handle the message creation handler.
+    /// </summary>
+    /// <param name="message">The new message.</param>
+    public async ValueTask HandleAsync(Message message)
+    {
+        if (message.Channel is not TextGuildChannel || message.GuildId == null)
+            return;
+
+        // Send websocket request containing JSON data that contains the new message.
+        var sendData =
+            JsonSerializer.Serialize(MessageData.FromMessage(message.GuildId.Value, message));
+
+        await context.Clients.All.SendAsync("MessageCreationSend", sendData);
+
+        // Check for offensiveness or NSFW.
+        logger.LogInformation("Checking {Id} for NSFW and offensiveness...", message.Id);
+        if (_httpClient == null)
+            return;
+
+        var result = await _httpClient.PostAsJsonAsync("/filter_text", new MessageTextRequest
+        {
+            Text = message.Content
+        });
+        var resultGraph = await result.Content.ReadFromJsonAsync<ResultCheck>();
+
+        if (resultGraph == null)
+            return;
+
+        if (resultGraph.IsHateful || resultGraph.IsNsfw)
+        {
+            // When it's detected that it's either, the message will be deleted.
+            await CommunicationService?.SendMessageToChannel(new MessageRequest
+            {
+                ChannelId = message.ChannelId,
+                ResponseTo = message.Id,
+                Message = responseSystemHandler.GetRandomResponse(ResponseSystemHandler.ResponseTypes.RuleViolation)
+            })!;
+
+            await message.DeleteAsync();
+        }
+    }
+
+    /// <summary>
+    ///     When messages are deleted in bulk, this handler sends a request to the socket to delete them.
+    /// </summary>
+    /// <param name="arg">The MessageDeleteBulk Event Arguments.</param>
+    public async ValueTask HandleAsync(MessageDeleteBulkEventArgs arg)
+    {
+        await context.Clients.All.SendAsync("MessageDeletionBulkSend", arg.MessageIds);
+    }
+
+    /// <summary>
+    ///     Sends a deletion message request.
+    /// </summary>
+    /// <param name="arg">Message Deletion Arguments</param>
+    public async ValueTask HandleAsync(MessageDeleteEventArgs arg)
+    {
+        await context.Clients.All.SendAsync("MessageDeletionSend", arg.MessageId);
+    }
+}
+
+/// <summary>
+///     The general communication socket.
+/// </summary>
+public class MessagingHub : Hub
+{
+    public async Task MessageCreationSend(string message)
+    {
+        await Clients.All.SendAsync("MessageCreationSend", message);
+    }
+
+    public async Task MessageDeletionSend(ulong id)
+    {
+        await Clients.All.SendAsync("MessageDeletionSend", id);
+    }
+
+    public async Task MessageDeletionBulkSend(List<ulong> messages)
+    {
+        await Clients.All.SendAsync("MessageDeletionSend", messages);
+    }
+}

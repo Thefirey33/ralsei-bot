@@ -1,0 +1,189 @@
+@using System.Text
+@using System.Text.RegularExpressions
+@inject IHttpClientFactory ClientFactory
+@inject ILogger<MessageParser> Logger;
+
+@code {
+
+    /// <summary>
+    ///     This controls the insertion of each emoji into the message content.
+    /// </summary>
+    public class EmojiInsertion
+    {
+        /// <summary>
+        ///     Where the emoji will be inserted.
+        /// </summary>
+        public int InsertAt { get; init; }
+
+        /// <summary>
+        ///     The length of the emoji section.
+        /// </summary>
+        public int EndAt { get; init; }
+
+        /// <summary>
+        ///     The URL of the emoji.
+        /// </summary>
+        public required string Url { get; init; }
+    }
+
+    /// <summary>
+    ///     This contains the individual pieces for the message's content data.
+    /// </summary>
+    public class MessageContentData
+    {
+        /// <summary>
+        ///     The ORIGINAL              text.
+        /// </summary>
+        public string? Text { get; init; }
+
+        /// <summary>
+        ///     The emoji URL.
+        /// </summary>
+        public string? Emoji { get; init; }
+
+        /// <summary>
+        ///     Is this message a nullbreak?
+        /// </summary>
+        public bool IsNullBreak { get; init; }
+    }
+
+    /// <summary>
+    ///     All the content data of the message.
+    /// </summary>
+    private readonly List<MessageContentData> _messageContents = [];
+
+    /// <summary>
+    ///     The content of the message to parse.
+    /// </summary>
+    [Parameter]
+    public required string MessageContent { get; set; }
+
+    /// <summary>
+    ///     The HTTP Client that requests emojis from the API.
+    /// </summary>
+    private HttpClient? Client { get; set; }
+
+    /// <summary>
+    ///     The ID of the guild currently holding this message parser.
+    /// </summary>
+    [Parameter]
+    public required ulong GuildId { get; set; }
+
+    /// <summary>
+    ///     All the emojis are recieved from this link via the Discord API.
+    /// </summary>
+    private const string EmojiLink = "https://cdn.discordapp.com/emojis/";
+
+    /// <summary>
+    ///     The default HTML arguments that are passed to the emoji requester.
+    /// </summary>
+    private const string DefaultHtmlArgs = "size=32&animated=true";
+
+    /// <summary>
+    ///     Get Image Data from the API as Base64 image data.
+    /// </summary>
+    /// <param name="guildId">The ID of the guild that keeps this data.</param>
+    /// <param name="emojiId">The ID of the emoji.</param>
+    /// <returns></returns>
+    /// <exception cref="NullReferenceException"></exception>
+    private async Task<string> GetImgData(ulong guildId, ulong emojiId)
+    {
+        if (Client == null)
+            throw new
+                NullReferenceException("Client is not set!");
+        var imgByteData = await Client.GetByteArrayAsync($"Guild/{guildId}/emoji/{emojiId}");
+        return $"data:image/webp,base64,{Convert.ToBase64String(imgByteData)}";
+    }
+
+    protected override void OnInitialized()
+    {
+        Client = ClientFactory.CreateClient("RalseiBotBackend");
+
+        // Check if there's an emoji in the message.
+        // If there is, the emoji will be inserted.
+        var matchCollection = RegexHelper.EmojiRegex().Matches(MessageContent);
+
+        List<EmojiInsertion> emojiInsertions = [];
+        foreach (Match match in matchCollection)
+        {
+            foreach (Group matchGroup in match.Groups)
+            {
+                // The structure of the discord emoji.
+                // <a:name:id>
+                // A can be sometimes not there, so we'll ignore when necessary.
+
+                var cleanedUp = RegexHelper.EmojiTagRegex().Replace(matchGroup.Value, "");
+                var emojiId = cleanedUp
+                    .Split(":")
+                    .First(element => ulong.TryParse(element, out _));
+
+                emojiInsertions.Add(new EmojiInsertion
+                {
+                    InsertAt = matchGroup.Index,
+                    Url = $"{EmojiLink}{emojiId}.webp?{DefaultHtmlArgs}",
+                    EndAt = matchGroup.Index + matchGroup.Length
+                });
+            }
+        }
+
+
+        var messageContentBuilder = new StringBuilder();
+
+        for (var i = 0; i < MessageContent.Length; i++)
+        {
+            var charMessage = MessageContent[i];
+            // This is to stop the language server from bitching.
+            // So ignore.
+            var index = i;
+            var emojiRangeCheck
+                = emojiInsertions.SingleOrDefault(insertion => index >= insertion.InsertAt && index <= insertion.EndAt);
+
+            if (emojiRangeCheck == null)
+                messageContentBuilder.Append(charMessage);
+            else
+            {
+                // Add the built text data, after that, add the emoji.
+                AddCurrentContentToList();
+
+                _messageContents.Add(new MessageContentData
+                {
+                    Emoji = emojiRangeCheck.Url
+                });
+                i = emojiRangeCheck.EndAt;
+            }
+        }
+
+        // Add the remaining original text if there's any.
+        AddCurrentContentToList();
+        return;
+
+        void AddCurrentContentToList()
+        {
+            var content = messageContentBuilder.ToString();
+            _messageContents.Add(new MessageContentData
+            {
+                Text = content,
+                IsNullBreak = content.Contains('\n')
+            });
+            messageContentBuilder.Clear();
+        }
+    }
+
+}
+
+<div>
+    @foreach (var data in _messageContents)
+    {
+        @if (data.Text != null)
+        {
+            @foreach (var line in data.Text.Split("\n"))
+            {
+                <p class="@(!data.IsNullBreak ? "inline-blocking" : "")">@line</p>
+            }
+        }
+        else
+        {
+            <ImgIcon AssetLocation="@data.Emoji"></ImgIcon>
+        }
+    }
+</div>

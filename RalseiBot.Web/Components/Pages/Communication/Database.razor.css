@@ -1,0 +1,7 @@
+.aqua-text {
+    /** One of my favorite characters in DELTARUNE. It's a shame she's locked to Chapter 5 only. */
+    background: linear-gradient(to top, aqua, white);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}

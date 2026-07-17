@@ -1,6 +1,4 @@
 @page "/Database"
-@using System.Net.Mime
-@using System.Text
 @using Microsoft.AspNetCore.Authorization
 @using ralsei_bot_discord.Types.Database
 @using RalseiBot.Web.Components.Widgets
@@ -75,8 +73,8 @@
     /// <summary>
     ///     Delete an entry from the trust database.
     /// </summary>
-    /// <param name="id">The ID to reference when deleting.</param>
-    private async Task DeleteTrustDbEntry(int id)
+    /// <param name="userId">The ID to reference when deleting.</param>
+    private async Task DeleteTrustDbEntry(long userId)
     {
         // If the user confirms to delete it,
         // Delete the entry.
@@ -85,16 +83,14 @@
             return;
 
         _fetchingDatabaseInformation = true;
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, "TrustDb")
+        var message = new HttpRequestMessage(HttpMethod.Delete, "TrustDb")
         {
-            Content = new StringContent(
-                id.ToString(),
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            )
+            Content = JsonContent.Create(new TrustRequestData
+            {
+                UserId = userId
+            })
         };
-
-        var result = await _httpClient.SendAsync(requestMessage);
+        var result = await _httpClient.SendAsync(message);
         if (result.IsSuccessStatusCode)
             await ReloadTrustDbEntries();
 
@@ -109,15 +105,24 @@
 }
 else
 {
-    <!-- Display database cluster information, since we have a cluster of databases. -->
+    @* Display database cluster information, since we have a cluster of databases. *@
     <p class="horizontal-alignment">
         <ImgIcon AssetLocation="@Assets["icons/warning.png"]"/>
         Database Cluster is @(_databaseIsOk ? "Functional" : "Broken. Check your SQL Server Immediately!")
     </p>
+
+    @* Easter Egg. *@
+    @if (Random.Shared.Next(0, 20) == 0)
+    {
+        <p class="horizontal-alignment aqua-text">
+            <ImgIcon AssetLocation="@Assets["funstuff/aqua_wave.gif"]"/>
+            Uuuu! What's a database?
+        </p>
+    }
 }
 
 
-<!-- Trusted User Database -->
+@* Trusted User Database *@
 <div class="table-container bg-cover">
     <h3>Trusted Users</h3>
     <table>
@@ -134,7 +139,7 @@ else
                     <td>@data.Id</td>
                     <td>@data.UserId</td>
                     <td>
-                        <button class="btn-no-back" @onclick="() => DeleteTrustDbEntry(data.Id)">
+                        <button class="btn-no-back" @onclick="() => DeleteTrustDbEntry(data.UserId)">
                             <ImgIcon AssetLocation="@Assets["icons/delete.png"]"></ImgIcon>
                         </button>
                     </td>
@@ -143,7 +148,7 @@ else
         }
     </table>
     <p>@(_trustData?.Count) items in Database.</p>
-    <!-- This code allows the addition to the trusted user database. -->
+    @* This code allows the addition to the trusted user database. *@
     <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddTrustDbEntry">
         <label>
             <InputNumber class="btn" @bind-Value="_trustDataModel.UserId"
@@ -156,4 +161,4 @@ else
         Each entry is a TRUSTED USER. This means that this user, even if their account is really new, they are trusted.
     </p>
 </div>
-<!-- Guild Information Database-->
+@* Guild Information Database*@

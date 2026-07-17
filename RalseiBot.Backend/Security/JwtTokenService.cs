@@ -95,6 +95,7 @@ public class JwtTokenService(IConfiguration configuration, ILogger<JwtTokenServi
             Expires = MaxAuthTime
         };
 
+        logger.LogInformation("Processing dashboard sign in request...");
         HttpContext.Response.Cookies.Append("X-Access-Token", token, cookieOptions);
 
         return Ok();
