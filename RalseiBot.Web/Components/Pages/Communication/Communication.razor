@@ -31,12 +31,17 @@
     /// <summary>
     ///     The selected ID that the user has selected from the list.
     /// </summary>
-    private string? _selectedId;
+    public ulong SelectedId { get; set; }
+
+    /// <summary>
+    ///     Is the API busy?
+    /// </summary>
+    private bool ApiBusy;
 
     /// <summary>
     ///     If the API is busy loading tasks, this boolean will be set to true.
     /// </summary>
-    private bool BusyLoading => Channels == null || !Channels.Any();
+    private bool BusyLoading => Channels == null || !Channels.Any() || ApiBusy;
 
     /// <summary>
     ///     When the bot initializes, initialize the first guild immediately.
@@ -45,17 +50,17 @@
     {
         _client = ClientFactory.CreateClient("RalseiBotBackend");
 
-        if (Channels != null)
-        {
-            return;
-        }
+        await SharedState.CheckIfImported(_client);
+        SelectedId = SharedState.CurrentGuilds.First().Id;
 
         // Attempt to retrieve all guild data.
         // While receiving the data, display the loading throbber for the user so they don't spam the API with too many requests,
         // which would result in a rate limit.
-        
-        await SharedState.CheckIfImported(_client);
-        await CreateChannelsGuild(SharedState.CurrentGuilds.First().Id);
+
+        if (Channels != null)
+            return;
+
+        await CreateChannelsGuild(SelectedId);
     }
 
     /// <summary>
@@ -66,7 +71,15 @@
     {
         if (_client == null)
             return;
-        Channels = await _client.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
+        try
+        {
+            ApiBusy = true;
+            Channels = await _client.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
+        }
+        finally
+        {
+            ApiBusy = false;
+        }
     }
 
     /// <summary>
@@ -74,10 +87,7 @@
     /// </summary>
     private async Task ReloadChannelList()
     {
-        if (ulong.TryParse(_selectedId, out var id))
-        {
-            await CreateChannelsGuild(id);
-        }
+        await CreateChannelsGuild(SelectedId);
     }
 
     private async Task ExecuteClipboard(ulong guildId)
@@ -112,15 +122,16 @@
         @if (!BusyLoading)
         {
             <div class="horizontal-alignment">
-                <select name="PortalSelectionBox" @bind="_selectedId" class="btn">
+                <InputSelect name="PortalSelectionBox" @bind-Value="SelectedId" class="btn">
                     @foreach (var guild in SharedState.CurrentGuilds)
                     {
-                        <option value="@(guild.Id)">@(guild.Name)</option>
+                        <option value="@guild.Id">@(guild.Name)</option>
                     }
-                </select>
+                </InputSelect>
                 <button class="btn" @onclick="ReloadChannelList">To Portal</button>
                 @* Add to clipboard *@
-                <button class="btn-no-back" @onclick="async () => await ExecuteClipboard(Channels.First().GuildId)">
+                <button class="btn-no-back"
+                        @onclick="async () => { if (Channels != null) await ExecuteClipboard(Channels.First().GuildId); }">
                     <ImgIcon AssetLocation="@Assets["icons/clipboard.png"]"/>
                 </button>
             </div>
@@ -131,7 +142,7 @@
                 foreach (var channel in Channels)
                 {
                     <div class="channel-button">
-                        <a href="/Channel/@channel.ChannelId" class="channel-identifier">
+                        <a href="/Communication/@channel.GuildId/Channel/@channel.ChannelId" class="channel-identifier">
                             <img
                                 src="@Assets[channel.TypeChannel == ChannelType.Text ? "icons/text_channel.png" : "icons/voice_channel.png"]"
                                 alt="Channel Type Icon"

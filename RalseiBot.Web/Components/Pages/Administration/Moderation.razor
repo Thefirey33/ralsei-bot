@@ -1,0 +1,107 @@
+@page "/Moderation"
+@using Microsoft.AspNetCore.Authorization
+@using ralsei_bot_discord.Types
+@using RalseiBot.Web.Components.Widgets
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IHttpClientFactory ClientFactory
+@inject GeneralSharedState SharedState
+
+@* ReSharper disable once MemberCanBePrivate.Global *@
+
+@code {
+
+    /// <summary>
+    ///     The HTTP Client.
+    /// </summary>
+    [PersistentState]
+    public HttpClient? HttpClient { get; set; }
+
+    /// <summary>
+    ///     The current selected ID.
+    /// </summary>
+    public ulong SelectedId { get; set; }
+
+    /// <summary>
+    ///     All users.
+    /// </summary>
+    [PersistentState(AllowUpdates = true)]
+    public List<UserData>? Users { get; set; }
+
+    /// <summary>
+    ///     Is the API busy?
+    /// </summary>
+    private bool _apiBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HttpClient = ClientFactory.CreateClient("RalseiBotBackend");
+        await SharedState.CheckIfImported(HttpClient);
+
+        SelectedId = SharedState.CurrentGuilds.First().Id;
+
+        // Attempt to list all users on startup.
+        if (Users != null)
+            return;
+
+        await ListAllUsers();
+    }
+
+    /// <summary>
+    ///     Attempt to list all users in the database.
+    /// </summary>
+    private async Task ListAllUsers()
+    {
+        if (HttpClient == null)
+            return;
+
+        try
+        {
+            _apiBusy = true;
+            Users = await HttpClient.GetFromJsonAsync<List<UserData>>($"Guild/users/{SelectedId}");
+            Users = Users?.Where(data => !data.IsBot).ToList();
+        }
+        finally
+        {
+            _apiBusy = false;
+        }
+    }
+
+}
+
+@* Slight reminder. *@
+<p class="bg-cover horizontal-alignment">
+    <ImgIcon AssetLocation="@Assets["icons/halt.png"]"/>
+    This, being the moderation section will be the one to ask you the most confirmations since it involves users.
+</p>
+
+<div class="bg-cover">
+    @if (!_apiBusy)
+    {
+        <div class="horizontal-alignment">
+            <InputSelect class="btn" @bind-Value="SelectedId">
+                @foreach (var guild in SharedState.CurrentGuilds)
+                {
+                    <option value="@guild.Id">@guild.Name</option>
+                }
+            </InputSelect>
+            <button class="btn" @onclick="ListAllUsers">Go To Portal</button>
+        </div>
+        <div class="user-group">
+            @if (Users != null)
+            {
+                foreach (var user in Users)
+                {
+                    <div class="horizontal-alignment">
+                        <img src="@user.ProfilePictureLink" alt="Profile Picture" width="64" height="64"/>
+                        <p></p>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <LoadingThrobber ConnectionString="Loading Moderation DB.."/>
+    }
+</div>

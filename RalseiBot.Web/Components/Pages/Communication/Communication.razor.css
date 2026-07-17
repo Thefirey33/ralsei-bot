@@ -1,0 +1,42 @@
+.channel-button {
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid black;
+    gap: 10px;
+}
+
+
+.channel-button > .channel-identifier {
+    background-color: black;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    border: none;
+}
+
+.channel-button > .channel-identifier:hover {
+    text-decoration: underline;
+}
+
+.channel-selection-panel {
+    display: flex;
+    overflow: auto;
+    max-height: 50vh;
+    flex-direction: column;
+    border: 1px solid white;
+    gap: 10px;
+    padding: 10px;
+}
+
+.message-send-box {
+    background-color: black;
+    border: 2px solid white;
+    height: 30px;
+    color: white;
+    width: 70vw;
+}

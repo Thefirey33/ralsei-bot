@@ -1,0 +1,7 @@
+.top-link-panel {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    align-items: center;
+    margin: 20px;
+}

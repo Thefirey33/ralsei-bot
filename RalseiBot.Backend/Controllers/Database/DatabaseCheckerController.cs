@@ -16,7 +16,8 @@ namespace ralsei_bot_discord.Controllers.Database;
 public class DatabaseCheckerController(
     [FromKeyedServices("ServerDB")] MySqlDataSource serverDbSource,
     [FromKeyedServices("TrustDB")] MySqlDataSource trustDbSource,
-    [FromKeyedServices("ScoreDB")] MySqlDataSource scoreDbSource) : ControllerBase
+    [FromKeyedServices("ScoreDB")] MySqlDataSource scoreDbSource,
+    [FromKeyedServices("WarningDB")] MySqlDataSource warningDbSource) : ControllerBase
 {
     /// <summary>
     ///     This function individually checks each database to make sure it works fine.
@@ -32,15 +33,17 @@ public class DatabaseCheckerController(
         await using var serverDbConnection = await serverDbSource.OpenConnectionAsync();
         await using var trustDbConnection = await trustDbSource.OpenConnectionAsync();
         await using var scoreDbConnection = await scoreDbSource.OpenConnectionAsync();
+        await using var warningDbConnection = await warningDbSource.OpenConnectionAsync();
 
         // Ping each database and check individually for their connections.
         var isDatabaseAllActive = await serverDbConnection.PingAsync() && await trustDbConnection.PingAsync() &&
-                                  await scoreDbConnection.PingAsync();
+                                  await scoreDbConnection.PingAsync() && await warningDbConnection.PingAsync();
 
         // Close the database connections.
         await trustDbConnection.CloseAsync();
         await serverDbConnection.CloseAsync();
         await scoreDbConnection.CloseAsync();
+        await warningDbConnection.CloseAsync();
 
         return Ok(isDatabaseAllActive);
     }

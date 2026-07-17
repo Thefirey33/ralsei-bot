@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR;
@@ -10,9 +11,11 @@ using ralsei_bot_discord.Types.Requests;
 
 namespace ralsei_bot_discord.Handlers;
 
-public class GuildCommunicationHandler(
+// ReSharper, this class isn't supposed to be instantiated.
+[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
+public class GuildMessagesHandler(
     IHubContext<MessagingHub> context,
-    ILogger<GuildCommunicationHandler> logger,
+    ILogger<GuildMessagesHandler> logger,
     IHttpClientFactory httpClientFactory,
     ResponseSystemHandler responseSystemHandler,
     ICommunicationService communicationService)
@@ -21,7 +24,7 @@ public class GuildCommunicationHandler(
     /// <summary>
     ///     The HTTP Client for communicating with the Python Filtering Service.
     /// </summary>
-    private readonly HttpClient? _httpClient = httpClientFactory.CreateClient("RalseiBotFilteringService");
+    private readonly HttpClient? _httpClient = httpClientFactory.CreateClient("RalseiBotClassification");
 
     [Inject] public ICommunicationService CommunicationService { get; set; } = communicationService;
 

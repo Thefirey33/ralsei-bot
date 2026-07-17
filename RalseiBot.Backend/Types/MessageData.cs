@@ -58,11 +58,6 @@ public sealed class MessageData : INotifyPropertyChanged
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; init; }
 
-    /// <summary>
-    ///     The profile picture URL of the user.
-    /// </summary>
-    [JsonPropertyName("pfp_url")]
-    public string? ProfilePictureLink { get; init; }
 
     /// <summary>
     ///     What message is this message a reply to?
@@ -102,9 +97,6 @@ public sealed class MessageData : INotifyPropertyChanged
             CreatedAt = message.CreatedAt,
             Text = message.Content,
             Author = UserData.GetFromUser(message.Author),
-            ProfilePictureLink = message.Author
-                .GetAvatarUrl()?
-                .ToString(),
             Attachments = message.Attachments
                 .Select(attach => new AttachmentData
                 {

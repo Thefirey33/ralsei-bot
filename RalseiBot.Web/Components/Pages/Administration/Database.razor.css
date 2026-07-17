@@ -5,3 +5,10 @@
     -webkit-background-clip: text;
     color: transparent;
 }
+
+.bottom-addition {
+    display: flex;
+    flex-direction: row;
+    margin: 10px;
+    gap: 10px;
+}

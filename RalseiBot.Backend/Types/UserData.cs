@@ -9,13 +9,25 @@ public class UserData
     ///     The ID of the user.
     /// </summary>
     [JsonPropertyName("id")]
-    public ulong Id { get; set; }
+    public ulong Id { get; init; }
+
+    /// <summary>
+    ///     The profile picture URL of the user.
+    /// </summary>
+    [JsonPropertyName("pfp_url")]
+    public string? ProfilePictureLink { get; init; }
+
+    /// <summary>
+    ///     If the user is a bot.
+    /// </summary>
+    [JsonPropertyName("is_bot")]
+    public bool IsBot { get; init; }
 
     /// <summary>
     ///     The username of the user.
     /// </summary>
     [JsonPropertyName("username")]
-    public required string Username { get; set; }
+    public required string Username { get; init; }
 
     /// <summary>
     ///     The display name of the user.
@@ -37,9 +49,11 @@ public class UserData
     {
         return new UserData
         {
-            DisplayName = user.GlobalName,
+            DisplayName = user.GlobalName ?? user.Username,
             Id = user.Id,
-            Username = user.Username
+            IsBot = user.IsBot,
+            Username = user.Username,
+            ProfilePictureLink = user.GetAvatarUrl()?.ToString()
         };
     }
 }

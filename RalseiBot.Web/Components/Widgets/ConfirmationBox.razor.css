@@ -1,0 +1,25 @@
+.confirmation-box {
+    position: absolute;
+    top: 50%;
+    left: 50%; /** Why CSS, why?!!! */
+    transform: translate(-50%, -50%); /** This is some ugly shit right here! */
+    justify-self: center;
+    margin: auto;
+    padding: 10px;
+    gap: 5px;
+    border-color: red;
+    align-items: center;
+    justify-content: center;
+    max-height: max-content;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+    min-width: 10vw;
+}
+
+.confirmation-box > div {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}

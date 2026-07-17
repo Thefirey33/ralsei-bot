@@ -57,12 +57,24 @@ var serverDb
                             CREATE TABLE IF NOT EXISTS ServerDB.servers (
                                 id INT AUTO_INCREMENT PRIMARY KEY,
                                 guild_id BIGINT NOT NULL,
-                                ralsei_channel_id BIGINT NOT NULL,
-                                general_channel_id BIGINT NOT NULL,
-                                moderation_channel_id BIGINT NOT NULL
+                                ralsei_channel_id BIGINT,
+                                general_channel_id BIGINT,
+                                moderation_channel_id BIGINT,
+                                UNIQUE (guild_id)
                             );
                             """
         );
+
+var warningb = mySql.AddDatabase("WarningDB")
+    .WithCreationScript("""
+                        CREATE DATABASE IF NOT EXISTS WarningDB;
+                        CREATE TABLE IF NOT EXISTS WarningDB.users (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            user_id BIGINT NOT NULL,
+                            warning_count INT NOT NULL,
+                            UNIQUE (user_id)
+                        );
+                        """);
 
 #endregion
 
@@ -70,22 +82,21 @@ var serverDb
 // Each of the databases will connect to this project, where it will manage it.
 
 var filteringService = builder.AddUvicornApp(
-        "RalseiBotFilteringService",
-        "../RalseiBot.Filter",
+        "RalseiBotClassification",
+        "../RalseiBot.Classification",
         "main:app")
     .WithHttpEndpoint(5000, env: "PORT");
 
 var backendService
     = builder.AddProject<RalseiBot_Backend>("RalseiBotBackend")
+        .WithHttpEndpoint(8080)
         .WithReference(filteringService)
         .WaitFor(filteringService)
-        .WithHttpEndpoint(8080)
-        .WithReference(scoreDb) // Reference each
-        .WithReference(trustedUser) // Database, so we can
-        .WithReference(serverDb) // Use it.
-        .WaitFor(scoreDb) // Wait for each
-        .WaitFor(trustedUser) // Database
-        .WaitFor(serverDb); // To Initialize.
+        .WaitFor(mySql) // Database Reference Section. Where the databases are referenced and processed.
+        .WithReference(scoreDb)
+        .WithReference(trustedUser)
+        .WithReference(serverDb)
+        .WithReference(warningb);
 
 
 builder.AddProject<RalseiBot_Web>("RalseiBotFrontend")

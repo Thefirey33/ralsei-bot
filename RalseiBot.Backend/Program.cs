@@ -30,21 +30,23 @@ builder.Logging
 // Add the websocketing service.
 builder.Services.AddSignalR()
     .AddHubOptions<MessagingHub>(options => { options.MaximumReceiveMessageSize = 10 * 1024 * 1024; });
-// Register the scoped response manager.
-builder.Services.AddSingleton<ResponseSystemHandler>();
 
-// Register the MySQL databases, so the bot can use them properly.
+// Register the MySQL databases.
 builder.AddKeyedMySqlDataSource("ScoreDB");
 builder.AddKeyedMySqlDataSource("TrustDB");
+builder.AddKeyedMySqlDataSource("WarningDB");
 builder.AddKeyedMySqlDataSource("ServerDB");
 
-// Scoped services that are basically shared implementations between controllers.
+// These are the shared services that each API controller will have.
 builder.Services
-    .AddScoped<ITrustDbService, TrustDbService>()
-    .AddSingleton<ICommunicationService, CommunicationService>();
+    .AddSingleton<ITrustDbService, TrustDbService>() // The Trusted User Database, where the trusted users are stored.
+    .AddSingleton<IServerDbService, ServerDbService>() // The server configuration database.
+    .AddSingleton<IWarningDbService, WarningDbService>() // The warning/moderation database.
+    .AddSingleton<ICommunicationService, CommunicationService>()
+    .AddSingleton<ResponseSystemHandler>();
 
-builder.Services.AddHttpClient("RalseiBotFilteringService",
-    client => { client.BaseAddress = new Uri("http+https://RalseiBotFilteringService"); });
+builder.Services.AddHttpClient("RalseiBotClassification",
+    client => { client.BaseAddress = new Uri("http+https://RalseiBotClassification"); });
 
 // Security
 // This is handled using a JWT Bearer Token system, where a cookie will store the specified access token.

@@ -1,4 +1,4 @@
-@page "/Channel/{Id:long}"
+@page "/Communication/{IdGuild}/Channel/{IdChannel}"
 @* Disable pre-rendering, because otherwise the whole program kills itself. *@
 @rendermode @(new InteractiveServerRenderMode(false))
 @inject IHttpClientFactory ClientFactory
@@ -22,7 +22,23 @@
     ///     The ID of the current channel.
     /// </summary>
     [Parameter]
-    public long Id { get; set; }
+    public string? IdChannel { get; set; }
+
+    /// <summary>
+    ///     The ID of the current guild.
+    /// </summary>
+    [Parameter]
+    public string? IdGuild { get; set; }
+
+    /// <summary>
+    ///     Very strange workaround to ASP.NET's non ulong requirement.
+    /// </summary>
+    public ulong Id => Convert.ToUInt64(IdChannel);
+
+    /// <summary>
+    ///     Another very strange workaround to ASP.NET's non ulong requirement.
+    /// </summary>
+    public ulong GuildId => Convert.ToUInt64(IdGuild);
 
     /// <summary>
     ///     The HTTP Client for the channel interface.
@@ -36,6 +52,11 @@
     public List<MessageData>? MessageData { get; set; }
 
     /// <summary>
+    /// </summary>
+    [PersistentState(AllowUpdates = true)]
+    public List<EmojiData>? EmojiData { get; set; }
+
+    /// <summary>
     ///     The model for the message sending request.
     /// </summary>
     private readonly MessageRequest _messageModel = new()
@@ -46,7 +67,7 @@
     /// <summary>
     ///     Is the bot busy pre-fetching messages?
     /// </summary>
-    private bool BusyPreFetching => MessageData == null && UserData == null;
+    private bool BusyPreFetching => MessageData == null && UserData == null && EmojiData == null;
 
     /// <summary>
     ///     The connection to the communication hub.
@@ -72,10 +93,12 @@
         Client = ClientFactory.CreateClient("RalseiBotBackend");
         MessageData ??= await Client.GetFromJsonAsync<List<MessageData>>($"Communication/messages/{Id}");
         UserData ??= await Client.GetFromJsonAsync<UserData>("Information/user");
+        EmojiData ??= await Client.GetFromJsonAsync<List<EmojiData>>($"Guild/emojis/{GuildId}");
 
         // If the MessageData and UserData is null, do not create a communication hub.
         if (MessageData == null || UserData == null)
             return;
+
 
         HubConnection = new HubConnectionBuilder()
             .WithUrl($"{connectionUrl}/Communication")
@@ -101,7 +124,7 @@
         {
             Logger.LogInformation("Received Message: {@message}", message);
             var deserializedData = JsonSerializer.Deserialize<MessageData>(message);
-            if (deserializedData == null || Convert.ToInt64(deserializedData.ChannelId) != Id || MessageData == null)
+            if (deserializedData == null || deserializedData.ChannelId != Id || MessageData == null)
                 return;
 
             // Switch between message actions, that execute different tasks.
@@ -199,7 +222,7 @@
         if (Client == null)
             return;
 
-        _messageModel.ChannelId = Convert.ToUInt64(Id);
+        _messageModel.ChannelId = Id;
         SendingMessage = true;
         Logger.LogInformation("Sending request to backend to send message: {MessageData}", _messageModel);
         await Client.PostAsJsonAsync("Communication/messages/send", _messageModel);
@@ -305,7 +328,7 @@
                 {
                     <div class="horizontal-alignment reply-box">
                         <ImgIcon AssetLocation="@Assets["icons/reply_icon.png"]"/>
-                        <ImgIcon AssetLocation="@(messageData.ProfilePictureLink)"/>
+                        <ImgIcon AssetLocation="@(messageData.Author.ProfilePictureLink)"/>
                         <p class="@isUserCssClass">@messageData.Author.DisplayName</p>
 
                         <MessageParser
@@ -319,7 +342,7 @@
                         <div class="horizontal-alignment">
                             @if (!messageBefore)
                             {
-                                <ImgIcon AssetLocation="@message.ProfilePictureLink"/>
+                                <ImgIcon AssetLocation="@message.Author.ProfilePictureLink"/>
                                 <p class="@isUserCssClass">@message.Author.DisplayName</p>
                                 @* Display the created time of the message in the user's local time. *@
                                 <em>@message.CreatedAt.ToLocalTime()</em>
@@ -452,3 +475,16 @@ else
 {
     <LoadingThrobber ConnectionString="Sending message, please wait..."/>
 }
+
+<div>
+    @if (EmojiData != null)
+    {
+        foreach (var emoji in EmojiData)
+        {
+            <button class="btn-no-back" @onclick="() => _messageModel.Message += emoji.GetEmojiString()">
+                <ImgIcon
+                    AssetLocation="@($"{MessageParser.EmojiLink}{emoji.Id}.webp?{MessageParser.DefaultHtmlArgs}")"/>
+            </button>
+        }
+    }
+</div>

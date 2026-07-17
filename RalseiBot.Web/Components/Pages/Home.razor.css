@@ -1,0 +1,18 @@
+.information-panel {
+    border: 1px solid white;
+    min-width: 1vw;
+    max-width: max-content !important;
+    padding: 10px;
+    margin: auto;
+}
+
+.information-panel > .information-label {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-items: center;
+}
+
+.align-center {
+    text-align: center;
+}

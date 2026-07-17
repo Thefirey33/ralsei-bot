@@ -1,6 +1,8 @@
 
 @code {
+    // This is literally the base img element wrapper for just icons.
+
     [Parameter] public string? AssetLocation { get; set; }
 }
 
-<img src="@AssetLocation" width="32" height="32" alt="Icon"/>
+<img draggable="false" src="@AssetLocation" width="32" height="32" alt="Icon"/>

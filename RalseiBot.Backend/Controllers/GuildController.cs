@@ -10,13 +10,8 @@ namespace ralsei_bot_discord.Controllers;
 [ApiController]
 [Authorize]
 [Route("[controller]")]
-public class GuildController(RestClient restClient, IHttpClientFactory httpClientFactory) : ControllerBase
+public class GuildController(RestClient restClient) : ControllerBase
 {
-    /// <summary>
-    ///     The emoji requesting HTTP Client.
-    /// </summary>
-    private readonly HttpClient _emojiRequester = httpClientFactory.CreateClient("EmojiRequester");
-
     /// <summary>
     ///     Attempt to retrieve all the guilds the bot has.
     /// </summary>
@@ -40,6 +35,41 @@ public class GuildController(RestClient restClient, IHttpClientFactory httpClien
     }
 
     /// <summary>
+    ///     Get guild by a specified ID.
+    /// </summary>
+    /// <param name="guildId">The Guild ID.</param>
+    [HttpGet("{guildId}")]
+    public async Task<IActionResult> GetGuild(ulong guildId)
+    {
+        var guild = await restClient.GetGuildAsync(guildId);
+        var guildConversion = new GuildData
+        {
+            Id = guild.Id,
+            Name = guild.Name
+        };
+
+        return Ok(guildConversion);
+    }
+
+    /// <summary>
+    ///     Get all the emojis of the specified guild.
+    /// </summary>
+    /// <param name="guildId">The ID of the guild.</param>
+    /// <returns>Emojis</returns>
+    [HttpGet("emojis/{guildId}")]
+    public async Task<IActionResult> GetEmojis(ulong guildId)
+    {
+        var fetchedEmojis = await restClient.GetGuildEmojisAsync(guildId);
+        return Ok(fetchedEmojis
+            .Select(emoji => new EmojiData
+            {
+                Animated = emoji.Animated,
+                Id = emoji.Id,
+                Name = emoji.Name
+            }));
+    }
+
+    /// <summary>
     ///     Attempt to get all the channels in the guild.
     /// </summary>
     /// <param name="guildId">The ID of the guild.</param>
@@ -60,5 +90,17 @@ public class GuildController(RestClient restClient, IHttpClientFactory httpClien
                     GuildId = channel.GuildId,
                     TypeChannel = channel is VoiceGuildChannel ? ChannelType.Voice : ChannelType.Text
                 }));
+    }
+
+    /// <summary>
+    ///     Get all the users in this guild.
+    /// </summary>
+    /// <param name="guildId">the guildId to reference.</param>
+    [HttpGet("users/{guildId:long}")]
+    public IActionResult GetGuildUsers(ulong guildId)
+    {
+        var fetchedUsers = restClient.GetGuildUsersAsync(guildId);
+
+        return Ok(fetchedUsers.Select(UserData.GetFromUser));
     }
 }

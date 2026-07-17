@@ -22,7 +22,7 @@ public class CommunicationController(
     /// <summary>
     ///     The maximum amount of messages that are fetched.
     /// </summary>
-    private const int MaximumAmountMessages = 50;
+    private const int MaximumAmountMessages = 100;
 
 
     /// <summary>
@@ -121,6 +121,7 @@ public class CommunicationController(
             return Ok();
         }
     }
+
 
     [HttpPost("purge")]
     public async Task<IActionResult> PurgeMessages(MessageRequest messageRequest)

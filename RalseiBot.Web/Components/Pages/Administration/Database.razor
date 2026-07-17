@@ -8,6 +8,8 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 
+@* ReSharper disable MemberCanBePrivate.Global *@
+
 @code {
     private HttpClient? _httpClient;
 
@@ -19,12 +21,20 @@
     /// <summary>
     ///     If the database is busy fetching something.
     /// </summary>
-    private bool _fetchingDatabaseInformation = true;
+    private bool FetchingDatabaseInformation => TrustData == null && GuildData == null;
 
     /// <summary>
     ///     Data from the Trust DB API.
     /// </summary>
-    private List<TrustData>? _trustData = [];
+    [PersistentState]
+    public List<TrustData>? TrustData { get; set; }
+
+
+    /// <summary>
+    ///     The current guild data that the database holds.
+    /// </summary>
+    [PersistentState]
+    public List<GuildData>? GuildData { get; set; }
 
     /// <summary>
     ///     This is the database request model for the trust database.
@@ -38,9 +48,12 @@
         if (bool.TryParse(await _httpClient.GetStringAsync("DatabaseChecker"), out var result))
             _databaseIsOk = result;
 
+        // Load all the database entries that are required.
+        if (!FetchingDatabaseInformation)
+            return;
+
         await ReloadTrustDbEntries();
-        await SharedState.CheckIfImported(_httpClient);
-        _fetchingDatabaseInformation = false;
+        await ReloadServerDbEntries();
     }
 
     /// <summary>
@@ -48,10 +61,12 @@
     /// </summary>
     private async Task ReloadTrustDbEntries()
     {
-        if (_httpClient == null)
-            return;
+        TrustData = await _httpClient?.GetFromJsonAsync<List<TrustData>>("TrustDb/")!;
+    }
 
-        _trustData = await _httpClient.GetFromJsonAsync<List<TrustData>>("TrustDb");
+    private async Task ReloadServerDbEntries()
+    {
+        GuildData = await _httpClient?.GetFromJsonAsync<List<GuildData>>("ServerDb")!;
     }
 
     /// <summary>
@@ -59,7 +74,6 @@
     /// </summary>
     private async Task AddTrustDbEntry()
     {
-        _fetchingDatabaseInformation = true;
         if (_httpClient == null)
             return;
 
@@ -67,7 +81,6 @@
 
         if (result.IsSuccessStatusCode)
             await ReloadTrustDbEntries();
-        _fetchingDatabaseInformation = false;
     }
 
     /// <summary>
@@ -82,7 +95,6 @@
         if (_httpClient == null)
             return;
 
-        _fetchingDatabaseInformation = true;
         var message = new HttpRequestMessage(HttpMethod.Delete, "TrustDb")
         {
             Content = JsonContent.Create(new TrustRequestData
@@ -93,13 +105,13 @@
         var result = await _httpClient.SendAsync(message);
         if (result.IsSuccessStatusCode)
             await ReloadTrustDbEntries();
-
-        _fetchingDatabaseInformation = false;
     }
 
 }
 
-@if (_fetchingDatabaseInformation)
+@* ReSharper restore MemberCanBePrivate.Global *@
+
+@if (FetchingDatabaseInformation)
 {
     <LoadingThrobber ConnectionString="Executing Database Actions..."/>
 }
@@ -131,9 +143,9 @@ else
             <th>User ID</th>
             <th>Actions</th>
         </tr>
-        @if (_trustData != null)
+        @if (TrustData != null)
         {
-            foreach (var data in _trustData)
+            foreach (var data in TrustData)
             {
                 <tr>
                     <td>@data.Id</td>
@@ -147,7 +159,7 @@ else
             }
         }
     </table>
-    <p>@(_trustData?.Count) items in Database.</p>
+    <p>@(TrustData?.Count) items in Database.</p>
     @* This code allows the addition to the trusted user database. *@
     <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddTrustDbEntry">
         <label>
@@ -162,3 +174,44 @@ else
     </p>
 </div>
 @* Guild Information Database*@
+<div class="table-container bg-cover">
+    <h3>Guild Information</h3>
+    <table>
+        <tr>
+            <th>Id</th>
+            <th>Guild</th>
+            <th>Ralsei</th>
+            <th>General</th>
+            <th>Moderation</th>
+        </tr>
+        @if (GuildData != null)
+        {
+            @foreach (var data in GuildData)
+            {
+                <tr>
+                    <td>@data.Id</td>
+                    <td>@data.Name</td>
+                    @* This is where there are hotlinks to each channel for easy access in the database. *@
+                    <td>
+                        <a href="/Communication/@data.GuildId/Channel/@data.RalseiChannelId" class="btn">Enter Ralsei
+                            Channel</a>
+                    </td>
+                    <td>
+                        <a href="/Communication/@data.GuildId/Channel/@data.GeneralChannelId" class="btn">Enter General
+                            Channel</a>
+                    </td>
+                    <td>
+                        <a href="/Communication/@data.GuildId/Channel/@data.ModerationChannelId" class="btn">Enter
+                            Moderation Channel</a>
+                    </td>
+                </tr>
+            }
+        }
+    </table>
+    <p>@(GuildData?.Count) items in Database.</p>
+    <p class="horizontal-alignment">
+        <ImgIcon AssetLocation="@Assets["icons/info.png"]"/>
+        This database is automatically configured by <em>GuildDatabasePrepHandler</em> and doesn't have to be
+        configured.
+    </p>
+</div>

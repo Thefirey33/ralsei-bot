@@ -72,28 +72,13 @@
     /// <summary>
     ///     All the emojis are recieved from this link via the Discord API.
     /// </summary>
-    private const string EmojiLink = "https://cdn.discordapp.com/emojis/";
+    public const string EmojiLink = "https://cdn.discordapp.com/emojis/";
 
     /// <summary>
     ///     The default HTML arguments that are passed to the emoji requester.
     /// </summary>
-    private const string DefaultHtmlArgs = "size=32&animated=true";
+    public const string DefaultHtmlArgs = "size=32&animated=true";
 
-    /// <summary>
-    ///     Get Image Data from the API as Base64 image data.
-    /// </summary>
-    /// <param name="guildId">The ID of the guild that keeps this data.</param>
-    /// <param name="emojiId">The ID of the emoji.</param>
-    /// <returns></returns>
-    /// <exception cref="NullReferenceException"></exception>
-    private async Task<string> GetImgData(ulong guildId, ulong emojiId)
-    {
-        if (Client == null)
-            throw new
-                NullReferenceException("Client is not set!");
-        var imgByteData = await Client.GetByteArrayAsync($"Guild/{guildId}/emoji/{emojiId}");
-        return $"data:image/webp,base64,{Convert.ToBase64String(imgByteData)}";
-    }
 
     protected override void OnInitialized()
     {

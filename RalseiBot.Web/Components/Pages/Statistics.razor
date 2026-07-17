@@ -1,0 +1,148 @@
+@page "/Statistics"
+@using System.Diagnostics.Metrics
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas.Canvas2D
+@rendermode InteractiveServer
+@inject ILogger<Statistics> Logger;
+@inject IMeterFactory MeterFactory;
+<h3>Statistics</h3>
+
+@code {
+
+
+    /// <summary>
+    ///     The timer that updates the statistics panel's appearance.
+    /// </summary>
+    private Timer? _timer;
+
+    /// <summary>
+    ///     The canvas that the system usage will be graphed in.
+    /// </summary>
+    private BECanvas? _beCanvas;
+
+    /// <summary>
+    ///     The Canvas2D context.
+    /// </summary>
+    private Canvas2DContext? _canvas2DContext;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _timer = new Timer(Callback, null, 0, 100);
+    }
+
+
+    /// <summary>
+    ///     The width of the HTML canvas.
+    /// </summary>
+    private const int WidthCanvas = 600;
+
+    /// <summary>
+    ///     The width of the HTML canvas.
+    /// </summary>
+    private const int HeightCanvas = 300;
+
+    /// <summary>
+    ///     The CPU usage graph.
+    /// </summary>
+    private readonly List<double> _cpuUsageMetrics = [];
+
+    /// <summary>
+    ///     The Memory Usage graph.
+    /// </summary>
+    private readonly List<double> _memoryUsageMetrics = [];
+
+
+    /// <summary>
+    ///     Update the current state of the statistics panel every 100ms.
+    /// </summary>
+    /// <param name="state">The current state of the object, ignore this value.</param>
+    private void Callback(object? state)
+    {
+        _memoryUsageMetrics.Insert(0, HeightCanvas - Environment.WorkingSet / Math.Pow(1024, 2));
+        _cpuUsageMetrics.Insert(0, HeightCanvas - (Environment.CpuUsage.TotalTime - _beforeCpu).TotalMilliseconds);
+
+        if (_cpuUsageMetrics.Count > WidthCanvas)
+            _cpuUsageMetrics.RemoveAt(_cpuUsageMetrics.Count - 1);
+
+        if (_memoryUsageMetrics.Count > WidthCanvas)
+            _memoryUsageMetrics.RemoveAt(_memoryUsageMetrics.Count - 1);
+
+        _beforeCpu = Environment.CpuUsage.TotalTime;
+        InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    ///     The CPU usage before.
+    /// </summary>
+    private TimeSpan _beforeCpu;
+
+
+    /// <summary>
+    ///     The width of the square.
+    /// </summary>
+    private const int GraphDetailSize = 5;
+
+    /// <summary>
+    ///     This renders a graph from a list reference.
+    /// </summary>
+    /// <param name="graphReference">The list that will be graphed.</param>
+    /// <param name="color">The color of the line of the graph.</param>
+    /// <param name="description">The description on the text.</param>
+    private async Task RenderGraph(List<double> graphReference, string color, string description)
+    {
+        if (_canvas2DContext == null)
+            return;
+
+        await _canvas2DContext.BeginPathAsync();
+        await _canvas2DContext.SetStrokeStyleAsync(color);
+        await _canvas2DContext.SetLineWidthAsync(5);
+        for (var i = 0; i < graphReference.Count; i++)
+        {
+            var usageMetric = graphReference[i];
+            if (i == 0)
+            {
+                await _canvas2DContext.MoveToAsync(0, usageMetric);
+                await _canvas2DContext.SetFillStyleAsync(color);
+                await _canvas2DContext.SetFontAsync("20px Determination");
+                await _canvas2DContext.FillTextAsync(description, 0, usageMetric - 40);
+            }
+            else
+                await _canvas2DContext.LineToAsync(i * GraphDetailSize, usageMetric);
+        }
+
+        await _canvas2DContext.StrokeAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // This function renders the current usage of the CPU into a neat graph.
+        // For viewing.
+
+        if (firstRender)
+            _canvas2DContext = await _beCanvas.CreateCanvas2DAsync();
+
+        if (_canvas2DContext == null || _beCanvas == null)
+            return;
+
+        await _canvas2DContext.BeginBatchAsync();
+
+        await _canvas2DContext.ClearRectAsync(0, 0, _beCanvas.Width, _beCanvas.Height);
+        await RenderGraph(_cpuUsageMetrics, "green", "CPU");
+        await RenderGraph(_memoryUsageMetrics, "orange", "RAM");
+
+        await _canvas2DContext.EndBatchAsync();
+    }
+
+}
+
+<div class="bg-cover">
+    <h3>Machine: @Environment.MachineName</h3>
+    <h3>Platform: @Environment.OSVersion</h3>
+    <p>Total Uptime: @Environment.CpuUsage.UserTime</p>
+    <p>Memory Working Set: @(Math.Floor(Environment.WorkingSet / Math.Pow(1024, 2)))MB used for this process</p>
+
+    <div class="graph">
+        <BECanvas Width="@WidthCanvas" Height="@HeightCanvas" @ref="_beCanvas"/>
+    </div>
+</div>

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MySqlConnector;
 using ralsei_bot_discord.Controllers.Services;
 using ralsei_bot_discord.Types.Database;
 
@@ -7,7 +6,7 @@ namespace ralsei_bot_discord.Controllers.Database;
 
 [ApiController]
 [Route("[controller]")]
-public class TrustDbController([FromKeyedServices("TrustDB")] MySqlDataSource trustDbSource, ITrustDbService service)
+public class TrustDbController(ITrustDbService service)
     : ControllerBase
 {
     /// <summary>
