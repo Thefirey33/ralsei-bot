@@ -12,7 +12,7 @@ builder.Services
 
 var mySql = builder
     .AddMySql("MySQLDatabase")
-    .WithImage("mysql", "8.4.0-debian")
+    .WithImageTag("mysql:8.4.0-oraclelinux8")
     .WithDataVolume(isReadOnly: false)
     .WithPhpMyAdmin(phpAdmin => phpAdmin.WithHostPort(3000))
     .WithLifetime(ContainerLifetime.Persistent)
