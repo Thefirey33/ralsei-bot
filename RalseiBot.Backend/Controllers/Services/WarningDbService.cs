@@ -51,7 +51,8 @@ public class WarningDbService([FromKeyedServices("WarningDB")] MySqlDataSource w
     public async Task<DefaultResult> AddEntry(WarningData warningData)
     {
         await using var connection = await warningDbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("INSERT INTO users(user_id, warning_count) VALUES (@user_id, @warning_count)");
+        var command = new MySqlCommand("INSERT INTO users(user_id, warning_count) VALUES (@user_id, @warning_count)",
+            connection);
         command.Parameters.AddWithValue("@user_id", warningData.UserId);
         command.Parameters.AddWithValue("@warning_count", warningData.WarningCount);
 
@@ -72,7 +73,8 @@ public class WarningDbService([FromKeyedServices("WarningDB")] MySqlDataSource w
     {
         await using var connection = await warningDbSource.OpenConnectionAsync();
         var command =
-            new MySqlCommand("UPDATE users SET user_id=@user_id, warning_count=@warning_count WHERE id=@id");
+            new MySqlCommand("UPDATE users SET user_id=@user_id, warning_count=@warning_count WHERE id=@id",
+                connection);
         command.Parameters.AddWithValue("@user_id", warningData.UserId);
         command.Parameters.AddWithValue("@warning_count", warningData.WarningCount);
 
@@ -92,7 +94,7 @@ public class WarningDbService([FromKeyedServices("WarningDB")] MySqlDataSource w
     public async Task<DefaultResult> DeleteEntryById(int id)
     {
         await using var connection = await warningDbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("DELETE FROM users WHERE id=@id");
+        var command = new MySqlCommand("DELETE FROM users WHERE id=@id", connection);
         command.Parameters.AddWithValue("@id", id);
 
         var result = await command.ExecuteNonQueryAsync();
@@ -129,7 +131,7 @@ public class WarningDbService([FromKeyedServices("WarningDB")] MySqlDataSource w
     public async Task<List<WarningData>> GetWarnings()
     {
         await using var connection = await warningDbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("SELECT * FROM users");
+        var command = new MySqlCommand("SELECT * FROM users", connection);
         var result = await command.ExecuteReaderAsync();
         var warnings = new List<WarningData>();
 
@@ -154,7 +156,7 @@ public class WarningDbService([FromKeyedServices("WarningDB")] MySqlDataSource w
     private async Task<WarningData> GetWrapper(object id, string commandWrapper)
     {
         await using var connection = await warningDbSource.OpenConnectionAsync();
-        var command = new MySqlCommand(commandWrapper);
+        var command = new MySqlCommand(commandWrapper, connection);
         command.Parameters.AddWithValue("@id", id);
 
         var result = await command.ExecuteReaderAsync();

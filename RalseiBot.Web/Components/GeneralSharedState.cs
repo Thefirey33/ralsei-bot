@@ -59,11 +59,14 @@ public sealed class GeneralSharedState : INotifyPropertyChanged
         if (guilds != null) CurrentGuilds = guilds;
     }
 
+    public async Task UpdateGuilds(HttpClient httpClient)
+    {
+        CurrentGuilds = await httpClient.GetFromJsonAsync<List<GuildData>>("Guild/all") ?? [];
+    }
+
     public async Task CheckIfImported(HttpClient httpClient)
     {
-        if (CurrentGuilds.Count > 0)
-            return;
-        CurrentGuilds = await httpClient.GetFromJsonAsync<List<GuildData>>("Guild/all") ?? [];
+        await UpdateGuilds(httpClient);
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

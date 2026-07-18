@@ -6,7 +6,7 @@ namespace ralsei_bot_discord.Controllers.Database;
 
 [ApiController]
 [Route("[controller]")]
-public class WarningDbService(IWarningDbService warningDbService) : ControllerBase
+public class WarningDbController(IWarningDbService warningDbService) : ControllerBase
 {
     /// <summary>
     ///     Add an entry to the database.

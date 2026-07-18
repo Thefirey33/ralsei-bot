@@ -350,7 +350,7 @@
                             <em class="half-visible">(@message.Id)</em>
                             <button class="btn-no-back"
                                     @onclick="() => CopyIdMessageClipboard(message.Id)">
-                                <ImgIcon AssetLocation="@Assets["icons/clipboard.png"]"/>
+                                <ImgIcon AssetLocation="@Assets["icons/message/clipboard.png"]"/>
                             </button>
                             @* This will reply to a message. *@
                             <button class="btn-no-back" @onclick="() => _messageModel.ResponseTo = message.Id">
@@ -359,7 +359,7 @@
                             @* This will purge all messages until it hits this message. *@
                             <button class="btn-no-back"
                                     @onclick="() => PurgeUntil(MessageRequest.FromMessageData(message))">
-                                <ImgIcon AssetLocation="@Assets["icons/purge.png"]"/>
+                                <ImgIcon AssetLocation="@Assets["icons/moderation/purge.png"]"/>
                             </button>
                         </div>
 

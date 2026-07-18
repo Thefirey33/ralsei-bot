@@ -126,6 +126,14 @@ table, th, td {
     text-align: center;
 }
 
+.message-send-box {
+    background-color: black;
+    border: 2px solid white;
+    height: 30px;
+    color: white;
+    width: 70vw;
+}
+
 @font-face {
     font-family: 'Determination';
     src: url("/fontfile.ttf");

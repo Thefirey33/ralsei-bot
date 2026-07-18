@@ -1,21 +1,34 @@
 @page "/Moderation"
 @using Microsoft.AspNetCore.Authorization
 @using ralsei_bot_discord.Types
+@using ralsei_bot_discord.Types.Database
 @using RalseiBot.Web.Components.Widgets
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IHttpClientFactory ClientFactory
 @inject GeneralSharedState SharedState
 
-@* ReSharper disable once MemberCanBePrivate.Global *@
+
 
 @code {
+
+    public class WarningDbDataMerger
+    {
+        /// <summary>
+        ///     User data.
+        /// </summary>
+        public required UserData UserData { get; set; }
+
+        /// <summary>
+        ///     Warning DB data.
+        /// </summary>
+        public WarningData? WarningData { get; set; }
+    }
 
     /// <summary>
     ///     The HTTP Client.
     /// </summary>
-    [PersistentState]
-    public HttpClient? HttpClient { get; set; }
+    private HttpClient? HttpClient { get; set; }
 
     /// <summary>
     ///     The current selected ID.
@@ -26,7 +39,7 @@
     ///     All users.
     /// </summary>
     [PersistentState(AllowUpdates = true)]
-    public List<UserData>? Users { get; set; }
+    public List<WarningDbDataMerger>? Users { get; set; }
 
     /// <summary>
     ///     Is the API busy?
@@ -58,8 +71,19 @@
         try
         {
             _apiBusy = true;
-            Users = await HttpClient.GetFromJsonAsync<List<UserData>>($"Guild/users/{SelectedId}");
-            Users = Users?.Where(data => !data.IsBot).ToList();
+            var currentUserData = await HttpClient.GetFromJsonAsync<List<UserData>>($"Guild/users/{SelectedId}");
+            var currentModerationData = await HttpClient.GetFromJsonAsync<List<WarningData>>("WarningDb");
+            if (currentUserData == null || currentModerationData == null)
+                return;
+
+            Users = currentUserData
+                .Where(data => !data.IsBot)
+                .Select(data => new WarningDbDataMerger
+                {
+                    UserData = data,
+                    WarningData = currentModerationData.FirstOrDefault(warningData => warningData.UserId == data.Id)
+                })
+                .ToList();
         }
         finally
         {
@@ -93,8 +117,26 @@
                 foreach (var user in Users)
                 {
                     <div class="horizontal-alignment">
-                        <img src="@user.ProfilePictureLink" alt="Profile Picture" width="64" height="64"/>
-                        <p></p>
+                        <img class="profile-picture" src="@user.UserData.ProfilePictureLink" alt="Profile Picture"
+                             width="64"
+                             height="64"/>
+                        <p>@user.UserData.DisplayName</p>
+                        <em class="half-visible">(@user.UserData.Id)</em>
+                        @if (user.WarningData == null)
+                        {
+                            <p>No Warnings</p>
+                        }
+                        else
+                        {
+                            <p>(@user.WarningData.WarningCount number of warnings.)</p>
+                        }
+                        @* Actions you can take *@
+                        <button class="btn-no-back">
+                            <ImgIcon AssetLocation="@Assets["icons/moderation/kick.png"]"/>
+                        </button>
+                        <button class="btn-no-back">
+                            <ImgIcon AssetLocation="@Assets["icons/moderation/ban.png"]"/>
+                        </button>
                     </div>
                 }
             }
