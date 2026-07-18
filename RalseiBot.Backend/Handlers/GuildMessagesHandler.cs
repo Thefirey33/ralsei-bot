@@ -71,7 +71,10 @@ public class GuildMessagesHandler(
         var resultGraph = await result.Content.ReadFromJsonAsync<ResultCheck>();
 
         if (resultGraph == null)
+        {
+            await CheckResponse();
             return;
+        }
 
         if (resultGraph.IsHateful || resultGraph.IsNsfw)
         {
@@ -90,12 +93,16 @@ public class GuildMessagesHandler(
             })!;
 
             await message.DeleteAsync();
-
-            return;
         }
 
-        // Check if the message contains Ralsei.
-        if (message.MentionedUsers.Any(user => user.Id == currentUser.Id)) await ResponseToMessages(message);
+        await CheckResponse();
+        return;
+
+        async Task CheckResponse()
+        {
+            // Check if the message contains Ralsei.
+            if (message.MentionedUsers.Any(user => user.Id == currentUser.Id)) await ResponseToMessages(message);
+        }
     }
 
     /// <summary>
