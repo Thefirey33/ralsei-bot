@@ -39,17 +39,13 @@ public class RandomActivityHandler(
         var timeCalculation = (DateTime.Now + beforeSleepScheduleCalculation).Hour;
 
         if (timeCalculation is > SleepTime or < AwakeTime)
-        {
             await gatewayClient.UpdatePresenceAsync(new PresenceProperties(UserStatusType.Idle)
                     .AddActivities(
                         new UserActivityProperties(
                             randomQuoteHandler.GetRandomResponse(RandomQuoteHandler.ResponseTypes.FluffySleep),
                             UserActivityType.Listening)),
                 cancellationToken: stoppingToken);
-            await Task.Delay(AwakeTime - DateTime.Now.Hour, stoppingToken);
-        }
         else
-        {
             // Update the activity of the bot based on a random activity value in the RandomActionsDay.json file.
             await gatewayClient.UpdatePresenceAsync(
                 new PresenceProperties(UserStatusType.Online)
@@ -59,9 +55,8 @@ public class RandomActivityHandler(
                             UserActivityType.Playing)),
                 cancellationToken: stoppingToken);
 
-            await Task.Delay(
-                beforeSleepScheduleCalculation,
-                stoppingToken);
-        }
+        await Task.Delay(
+            beforeSleepScheduleCalculation,
+            stoppingToken);
     }
 }

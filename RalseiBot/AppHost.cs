@@ -109,7 +109,7 @@ var backendService
 builder.AddProject<RalseiBot_Web>("RalseiBotFrontend")
     .WithReference(backendService)
     .WithExternalHttpEndpoints()
-    .WithHttpEndpoint(8000)
+    .WithHttpEndpoint(8000, isProxied: false)
     .WaitFor(backendService)
     .PublishAsDockerComposeService((resource, service) => { service.Name = "frontend"; });
 
