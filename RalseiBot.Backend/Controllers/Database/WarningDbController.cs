@@ -6,7 +6,7 @@ namespace ralsei_bot_discord.Controllers.Database;
 
 [ApiController]
 [Route("[controller]")]
-public class WarningDbController(IWarningDbService warningDbService) : ControllerBase
+public class warningdbController(IwarningdbService warningdbService) : ControllerBase
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -15,7 +15,7 @@ public class WarningDbController(IWarningDbService warningDbService) : Controlle
     [HttpPost]
     public async Task<IActionResult> AddEntry(WarningData warningData)
     {
-        return Ok(await warningDbService.AddEntry(warningData));
+        return Ok(await warningdbService.AddEntry(warningData));
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ public class WarningDbController(IWarningDbService warningDbService) : Controlle
     [HttpPut]
     public async Task<IActionResult> UpdateEntry(WarningData warningData)
     {
-        return Ok(await warningDbService.UpdateEntry(warningData));
+        return Ok(await warningdbService.UpdateEntry(warningData));
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ public class WarningDbController(IWarningDbService warningDbService) : Controlle
     [HttpDelete("delete/{userId}")]
     public async Task<IActionResult> DeleteEntry(ulong userId)
     {
-        return Ok(await warningDbService.DeleteEntryById(userId));
+        return Ok(await warningdbService.DeleteEntryById(userId));
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class WarningDbController(IWarningDbService warningDbService) : Controlle
     [HttpGet("userId/{userId}")]
     public async Task<IActionResult> GetEntryByUserId(ulong userId)
     {
-        return Ok(await warningDbService.GetEntryByUserId(userId));
+        return Ok(await warningdbService.GetEntryByUserId(userId));
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class WarningDbController(IWarningDbService warningDbService) : Controlle
     [HttpGet("id/{id:int}")]
     public async Task<IActionResult> GetEntryById(int id)
     {
-        return Ok(await warningDbService.GetEntryById(id));
+        return Ok(await warningdbService.GetEntryById(id));
     }
 
     /// <summary>
@@ -64,6 +64,6 @@ public class WarningDbController(IWarningDbService warningDbService) : Controlle
     [HttpGet]
     public async Task<IActionResult> GetEntries()
     {
-        return Ok(await warningDbService.GetWarnings());
+        return Ok(await warningdbService.GetWarnings());
     }
 }

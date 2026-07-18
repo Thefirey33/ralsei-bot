@@ -6,7 +6,7 @@ namespace ralsei_bot_discord.Controllers.Database;
 
 [ApiController]
 [Route("[controller]")]
-public class ServerDbController(IServerDbService serverDbService) : ControllerBase
+public class serverdbController(IserverdbService serverdbService) : ControllerBase
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -15,7 +15,7 @@ public class ServerDbController(IServerDbService serverDbService) : ControllerBa
     [HttpPost("entry")]
     public async Task<IActionResult> AddEntry(GuildData guildData)
     {
-        return Ok(await serverDbService.AddEntry(guildData));
+        return Ok(await serverdbService.AddEntry(guildData));
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ public class ServerDbController(IServerDbService serverDbService) : ControllerBa
     [HttpDelete("entry/{id:int}")]
     public async Task<IActionResult> RemoveEntry(int id)
     {
-        return Ok(await serverDbService.RemoveEntry(id));
+        return Ok(await serverdbService.RemoveEntry(id));
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ public class ServerDbController(IServerDbService serverDbService) : ControllerBa
     [HttpGet("entry/{guildId}")]
     public async Task<IActionResult> GetEntryById(ulong guildId)
     {
-        var result = await serverDbService.GetEntryById(guildId);
+        var result = await serverdbService.GetEntryById(guildId);
         if (result == null)
             return NotFound(new DefaultResult
             {
@@ -50,7 +50,7 @@ public class ServerDbController(IServerDbService serverDbService) : ControllerBa
     [HttpPost("entry/update")]
     public async Task<IActionResult> UpdateEntry(GuildData guildData)
     {
-        var result = await serverDbService.UpdateEntry(guildData);
+        var result = await serverdbService.UpdateEntry(guildData);
         return Ok(result);
     }
 
@@ -60,6 +60,6 @@ public class ServerDbController(IServerDbService serverDbService) : ControllerBa
     [HttpGet]
     public async Task<IActionResult> GetEntries()
     {
-        return Ok(await serverDbService.GetEntries());
+        return Ok(await serverdbService.GetEntries());
     }
 }

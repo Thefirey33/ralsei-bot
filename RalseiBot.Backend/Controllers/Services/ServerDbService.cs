@@ -5,7 +5,7 @@ using ralsei_bot_discord.Types.Database;
 
 namespace ralsei_bot_discord.Controllers.Services;
 
-public interface IServerDbService
+public interface IserverdbService
 {
     /// <summary>
     ///     Add entry to the database.
@@ -46,10 +46,10 @@ public interface IServerDbService
     public Task<DefaultResult> UpdateEntry(GuildData guildData);
 }
 
-public class ServerDbService(
-    ILogger<ServerDbService> logger,
+public class serverdbService(
+    ILogger<serverdbService> logger,
     RestClient restClient,
-    [FromKeyedServices("ServerDB")] MySqlDataSource serverDbSource) : IServerDbService
+    [FromKeyedServices("serverdb")] MySqlDataSource serverdbSource) : IserverdbService
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -57,7 +57,7 @@ public class ServerDbService(
     /// <param name="guildData">The data to add to the database.</param>
     public async Task<DefaultResult> AddEntry(GuildData guildData)
     {
-        await using var connection = await serverDbSource.OpenConnectionAsync();
+        await using var connection = await serverdbSource.OpenConnectionAsync();
 
         // Insert the server database data.
         // If it exists, simply ignore the call and continue.
@@ -105,7 +105,7 @@ public class ServerDbService(
     /// <returns>The specified GuildData.</returns>
     public async Task<GuildData?> GetEntryById(ulong guildId)
     {
-        await using var connection = await serverDbSource.OpenConnectionAsync();
+        await using var connection = await serverdbSource.OpenConnectionAsync();
 
         var guildInformation = await restClient.GetGuildAsync(guildId);
 
@@ -142,7 +142,7 @@ public class ServerDbService(
     /// <returns>All the entries in the database.</returns>
     public async Task<List<GuildData>> GetEntries()
     {
-        await using var connection = await serverDbSource.OpenConnectionAsync();
+        await using var connection = await serverdbSource.OpenConnectionAsync();
 
         var command = new MySqlCommand("SELECT * FROM servers;", connection);
 
@@ -173,7 +173,7 @@ public class ServerDbService(
     {
         var isGuildIdNull = guildData.GuildId == null;
 
-        await using var connection = await serverDbSource.OpenConnectionAsync();
+        await using var connection = await serverdbSource.OpenConnectionAsync();
 
         // Get based on ID or GuildID.
         var command =
@@ -204,7 +204,7 @@ public class ServerDbService(
     /// <param name="parameter">The parameter. In SQL params, this must be named "id"</param>
     private async Task<DefaultResult> DeletionCommandWrapper(string commandString, object parameter)
     {
-        await using var connection = await serverDbSource.OpenConnectionAsync();
+        await using var connection = await serverdbSource.OpenConnectionAsync();
 
         var command = new MySqlCommand(commandString, connection);
         command.Parameters.AddWithValue("@id", parameter);

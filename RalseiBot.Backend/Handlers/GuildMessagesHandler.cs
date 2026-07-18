@@ -20,7 +20,7 @@ public class GuildMessagesHandler(
     IHttpClientFactory httpClientFactory,
     RandomQuoteHandler randomQuoteHandler,
     ICommunicationService communicationService,
-    IWarningDbService warningDbService,
+    IwarningdbService warningdbService,
     IModerationService moderationService,
     RestClient restClient)
     : IMessageCreateGatewayHandler, IMessageDeleteGatewayHandler, IMessageDeleteBulkGatewayHandler
@@ -75,7 +75,7 @@ public class GuildMessagesHandler(
 
         if (resultGraph.IsHateful || resultGraph.IsNsfw)
         {
-            var warningCount = await warningDbService.IncrementWarningCount(message.Author.Id);
+            var warningCount = await warningdbService.IncrementWarningCount(message.Author.Id);
 
             // If the user is above 3 warnings, then ban them.
             if (warningCount >= 3 && message.Guild != null)

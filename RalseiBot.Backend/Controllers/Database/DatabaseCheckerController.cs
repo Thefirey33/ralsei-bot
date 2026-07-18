@@ -7,17 +7,17 @@ namespace ralsei_bot_discord.Controllers.Database;
 /// <summary>
 ///     This checks the status of the database of the bot.
 /// </summary>
-/// <param name="serverDbSource">The ServerDB, is where the server's individual channels are managed.</param>
+/// <param name="serverdbSource">The serverdb, is where the server's individual channels are managed.</param>
 /// <param name="trustDbSource">The TrustDB, is where trusted users are added.</param>
-/// <param name="scoreDbSource">The ScoreDB, is where high-scores of games are stored.</param>
+/// <param name="scoredbSource">The scoredb, is where high-scores of games are stored.</param>
 [ApiController]
 [Authorize]
 [Route("[controller]")]
 public class DatabaseCheckerController(
-    [FromKeyedServices("ServerDB")] MySqlDataSource serverDbSource,
+    [FromKeyedServices("serverdb")] MySqlDataSource serverdbSource,
     [FromKeyedServices("TrustDB")] MySqlDataSource trustDbSource,
-    [FromKeyedServices("ScoreDB")] MySqlDataSource scoreDbSource,
-    [FromKeyedServices("WarningDB")] MySqlDataSource warningDbSource) : ControllerBase
+    [FromKeyedServices("scoredb")] MySqlDataSource scoredbSource,
+    [FromKeyedServices("warningdb")] MySqlDataSource warningdbSource) : ControllerBase
 {
     /// <summary>
     ///     This function individually checks each database to make sure it works fine.
@@ -30,20 +30,20 @@ public class DatabaseCheckerController(
         // Each server is pinged individually, and if the ping fails,
         // It will report an unhealthy status.
 
-        await using var serverDbConnection = await serverDbSource.OpenConnectionAsync();
+        await using var serverdbConnection = await serverdbSource.OpenConnectionAsync();
         await using var trustDbConnection = await trustDbSource.OpenConnectionAsync();
-        await using var scoreDbConnection = await scoreDbSource.OpenConnectionAsync();
-        await using var warningDbConnection = await warningDbSource.OpenConnectionAsync();
+        await using var scoredbConnection = await scoredbSource.OpenConnectionAsync();
+        await using var warningdbConnection = await warningdbSource.OpenConnectionAsync();
 
         // Ping each database and check individually for their connections.
-        var isDatabaseAllActive = await serverDbConnection.PingAsync() && await trustDbConnection.PingAsync() &&
-                                  await scoreDbConnection.PingAsync() && await warningDbConnection.PingAsync();
+        var isDatabaseAllActive = await serverdbConnection.PingAsync() && await trustDbConnection.PingAsync() &&
+                                  await scoredbConnection.PingAsync() && await warningdbConnection.PingAsync();
 
         // Close the database connections.
         await trustDbConnection.CloseAsync();
-        await serverDbConnection.CloseAsync();
-        await scoreDbConnection.CloseAsync();
-        await warningDbConnection.CloseAsync();
+        await serverdbConnection.CloseAsync();
+        await scoredbConnection.CloseAsync();
+        await warningdbConnection.CloseAsync();
 
         return Ok(isDatabaseAllActive);
     }

@@ -3,7 +3,7 @@ using ralsei_bot_discord.Types.Database;
 
 namespace ralsei_bot_discord.Controllers.Services;
 
-public interface IWarningDbService
+public interface IwarningdbService
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -48,9 +48,9 @@ public interface IWarningDbService
     public Task<int> IncrementWarningCount(ulong userId);
 }
 
-public class WarningDbService(
-    [FromKeyedServices("WarningDB")] MySqlDataSource warningDbSource,
-    ILogger<WarningDbService> logger) : IWarningDbService
+public class warningdbService(
+    [FromKeyedServices("warningdb")] MySqlDataSource warningdbSource,
+    ILogger<warningdbService> logger) : IwarningdbService
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -60,7 +60,7 @@ public class WarningDbService(
     {
         logger.LogInformation("ADD: {UserId}'s warning count is now {Count}", warningData.UserId,
             warningData.WarningCount);
-        await using var connection = await warningDbSource.OpenConnectionAsync();
+        await using var connection = await warningdbSource.OpenConnectionAsync();
         var command = new MySqlCommand("INSERT INTO users(user_id, warning_count) VALUES (@user_id, @warning_count)",
             connection);
         command.Parameters.AddWithValue("@user_id", warningData.UserId);
@@ -82,7 +82,7 @@ public class WarningDbService(
     public async Task<DefaultResult> UpdateEntry(WarningData warningData)
     {
         logger.LogInformation("{UserId}'s warning count is now {Count}", warningData.UserId, warningData.WarningCount);
-        await using var connection = await warningDbSource.OpenConnectionAsync();
+        await using var connection = await warningdbSource.OpenConnectionAsync();
         var command =
             new MySqlCommand("UPDATE users SET user_id=@user_id, warning_count=@warning_count WHERE id=@id",
                 connection);
@@ -123,7 +123,7 @@ public class WarningDbService(
     /// <returns>Warnings.</returns>
     public async Task<List<WarningData>> GetWarnings()
     {
-        await using var connection = await warningDbSource.OpenConnectionAsync();
+        await using var connection = await warningdbSource.OpenConnectionAsync();
         var command = new MySqlCommand("SELECT * FROM users", connection);
         var result = await command.ExecuteReaderAsync();
         var warnings = new List<WarningData>();
@@ -169,7 +169,7 @@ public class WarningDbService(
     /// <param name="userId">Id.</param>
     public async Task<DefaultResult> DeleteEntryById(ulong userId)
     {
-        await using var connection = await warningDbSource.OpenConnectionAsync();
+        await using var connection = await warningdbSource.OpenConnectionAsync();
         var command = new MySqlCommand("DELETE FROM users WHERE user_id=@user_id", connection);
         command.Parameters.AddWithValue("@user_id", userId);
 
@@ -191,7 +191,7 @@ public class WarningDbService(
     /// <exception cref="NullReferenceException"></exception>
     private async Task<WarningData?> GetWrapper(object id, string commandWrapper)
     {
-        await using var connection = await warningDbSource.OpenConnectionAsync();
+        await using var connection = await warningdbSource.OpenConnectionAsync();
         var command = new MySqlCommand(commandWrapper, connection);
         command.Parameters.AddWithValue("@id", id);
 

@@ -32,16 +32,16 @@ builder.Services.AddSignalR()
     .AddHubOptions<MessagingHub>(options => { options.MaximumReceiveMessageSize = 10 * 1024 * 1024; });
 
 // Register the MySQL databases.
-builder.AddKeyedMySqlDataSource("ScoreDB");
+builder.AddKeyedMySqlDataSource("scoredb");
 builder.AddKeyedMySqlDataSource("TrustDB");
-builder.AddKeyedMySqlDataSource("WarningDB");
-builder.AddKeyedMySqlDataSource("ServerDB");
+builder.AddKeyedMySqlDataSource("warningdb");
+builder.AddKeyedMySqlDataSource("serverdb");
 
 // These are the shared services that each API controller will have.
 builder.Services
     .AddSingleton<ITrustDbService, TrustDbService>() // The Trusted User Database, where the trusted users are stored.
-    .AddSingleton<IServerDbService, ServerDbService>() // The server configuration database.
-    .AddSingleton<IWarningDbService, WarningDbService>() // The warning/moderation database.
+    .AddSingleton<IserverdbService, serverdbService>() // The server configuration database.
+    .AddSingleton<IwarningdbService, warningdbService>() // The warning/moderation database.
     .AddSingleton<IModerationService, ModerationService>() // The moderation service.
     .AddSingleton<ICommunicationService, CommunicationService>() // The communication service's handler.
     .AddSingleton<RandomQuoteHandler>(); // Displays the random activities that Ralsei might do everyday.

@@ -12,7 +12,7 @@
 
 @code {
 
-    public class WarningDbDataMerger
+    public class warningdbDataMerger
     {
         /// <summary>
         ///     User data.
@@ -39,7 +39,7 @@
     ///     All users.
     /// </summary>
     [PersistentState(AllowUpdates = true)]
-    public List<WarningDbDataMerger>? Users { get; set; }
+    public List<warningdbDataMerger>? Users { get; set; }
 
     /// <summary>
     ///     Is the API busy?
@@ -77,14 +77,14 @@
         try
         {
             var currentUserData = await HttpClient.GetFromJsonAsync<List<UserData>>($"Guild/users/{SelectedId}");
-            var currentModerationData = await HttpClient.GetFromJsonAsync<List<WarningData>>("WarningDb");
+            var currentModerationData = await HttpClient.GetFromJsonAsync<List<WarningData>>("warningdb");
             if (currentUserData == null || currentModerationData == null)
                 return;
 
             // Create the users for the interface panel.
             Users = currentUserData
                 .Where(data => !data.IsBot)
-                .Select(data => new WarningDbDataMerger
+                .Select(data => new warningdbDataMerger
                 {
                     UserData = data,
                     WarningData = currentModerationData.FirstOrDefault(warningData => warningData.UserId == data.Id)
@@ -151,7 +151,7 @@
         if (HttpClient == null)
             return;
 
-        var result = await HttpClient.DeleteAsync($"WarningDb/delete/{id}");
+        var result = await HttpClient.DeleteAsync($"warningdb/delete/{id}");
         result.EnsureSuccessStatusCode();
 
         await ListAllUsers();

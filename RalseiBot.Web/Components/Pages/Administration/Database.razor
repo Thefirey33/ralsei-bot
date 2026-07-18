@@ -53,7 +53,7 @@
             return;
 
         await ReloadTrustDbEntries();
-        await ReloadServerDbEntries();
+        await ReloadserverdbEntries();
     }
 
     /// <summary>
@@ -64,9 +64,9 @@
         TrustData = await _httpClient?.GetFromJsonAsync<List<TrustData>>("TrustDb/")!;
     }
 
-    private async Task ReloadServerDbEntries()
+    private async Task ReloadserverdbEntries()
     {
-        GuildData = await _httpClient?.GetFromJsonAsync<List<GuildData>>("ServerDb")!;
+        GuildData = await _httpClient?.GetFromJsonAsync<List<GuildData>>("serverdb")!;
     }
 
     /// <summary>
