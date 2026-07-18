@@ -5,6 +5,9 @@
     <explicitIncludes>
       <Path>RalseiBot.Filter</Path>
     </explicitIncludes>
-    <explicitExcludes />
+    <explicitExcludes>
+      <Path>RalseiBot.Backend/appsettings.Development.json</Path>
+      <Path>RalseiBot.Web/appsettings.Development.json</Path>
+    </explicitExcludes>
   </component>
 </project>

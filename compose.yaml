@@ -1,7 +1,0 @@
-﻿services:
-  ralseibot:
-    image: ralseibot
-    build:
-      context: .
-      dockerfile: RalseiBot/Dockerfile
-

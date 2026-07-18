@@ -44,12 +44,17 @@
     /// <summary>
     ///     Is the API busy?
     /// </summary>
-    private bool _apiBusy;
+    public bool ApiBusy { get; set; }
+
+    /// <summary>
+    ///     The last thing the users see for a specified server before it gets purged.
+    /// </summary>
+    public bool PurgeAsk { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         HttpClient = ClientFactory.CreateClient("RalseiBotBackend");
-        await SharedState.CheckIfImported(HttpClient);
+        await SharedState.CheckGuilds(HttpClient);
 
         SelectedId = SharedState.CurrentGuilds.First().Id;
 
@@ -68,14 +73,15 @@
         if (HttpClient == null)
             return;
 
+        ApiBusy = true;
         try
         {
-            _apiBusy = true;
             var currentUserData = await HttpClient.GetFromJsonAsync<List<UserData>>($"Guild/users/{SelectedId}");
             var currentModerationData = await HttpClient.GetFromJsonAsync<List<WarningData>>("WarningDb");
             if (currentUserData == null || currentModerationData == null)
                 return;
 
+            // Create the users for the interface panel.
             Users = currentUserData
                 .Where(data => !data.IsBot)
                 .Select(data => new WarningDbDataMerger
@@ -87,10 +93,111 @@
         }
         finally
         {
-            _apiBusy = false;
+            ApiBusy = false;
         }
     }
 
+    /// <summary>
+    ///     Kick a user from the guild.
+    /// </summary>
+    /// <param name="guildId">Guild ID.</param>
+    /// <param name="userId">User ID.</param>
+    private async Task KickUser(ulong guildId, ulong userId)
+    {
+        if (HttpClient == null)
+            return;
+
+        SharedState.OpenQuestionBox();
+
+        var result = await SharedState.QuestionBox.Task;
+        if (result == GeneralSharedState.QuestionBoxState.Yes)
+        {
+            var responseMessage = await HttpClient.PostAsync($"Moderation/{guildId}/kick/{userId}", null);
+            responseMessage.EnsureSuccessStatusCode();
+
+            await ListAllUsers();
+        }
+    }
+
+    /// <summary>
+    ///     Ban a user from the guild.
+    /// </summary>
+    /// <param name="guildId">Guild ID.</param>
+    /// <param name="userId">User ID.</param>
+    private async Task BanUser(ulong guildId, ulong userId)
+    {
+        if (HttpClient == null)
+            return;
+
+        SharedState.OpenQuestionBox();
+
+        var result = await SharedState.QuestionBox.Task;
+
+        if (result == GeneralSharedState.QuestionBoxState.Yes)
+        {
+            var responseMessage = await HttpClient.PostAsync($"Moderation/{guildId}/ban/{userId}", null);
+            responseMessage.EnsureSuccessStatusCode();
+
+            await ListAllUsers();
+        }
+    }
+
+    /// <summary>
+    ///     Remove entry by ID.
+    /// </summary>
+    /// <param name="id">ID.</param>
+    private async Task RemoveEntry(ulong id)
+    {
+        if (HttpClient == null)
+            return;
+
+        var result = await HttpClient.DeleteAsync($"WarningDb/delete/{id}");
+        result.EnsureSuccessStatusCode();
+
+        await ListAllUsers();
+    }
+
+    /// <summary>
+    ///     Ban everyone.
+    /// </summary>
+    /// <param name="guildId">Guild ID.</param>
+    private async Task PurgeEverything(ulong guildId)
+    {
+        if (HttpClient == null)
+            return;
+
+        PurgeAsk = false;
+
+        var result = await HttpClient.PostAsJsonAsync($"Moderation/{guildId}/purge", Users.Select(merger => merger.UserData).ToList());
+        result.EnsureSuccessStatusCode();
+    }
+
+}
+
+@if (PurgeAsk)
+{
+    @* Purge MessageBox *@
+    <div class="bg-cover deadly-warning-box">
+        <img src="@Assets["icons/moderation/death.png"]" alt="Deadly Warning" width="64" height="64"/>
+        <h2>
+            <ShakyText Text="Hold Up!"/>
+        </h2>
+        <ul>
+            @* Giving the users the terms of the conditions of the purge system. *@
+            <li>Are you sure that you want to purge this entire server?</li>
+            <li>There will be no recovering your action.</li>
+            <em>The whole server will get erased from top to bottom!</em>
+            <li class="last-paragraph">Think about this for a bit... alright?</li>
+            <div class="last-selection">
+                <button class="btn" @onclick="async () => await PurgeEverything(SelectedId)">Proceed</button>
+                <button class="btn" @onclick="() => PurgeAsk = false">No</button>
+            </div>
+        </ul>
+    </div>
+    <div class="evil-overlay-doom-and-despair">
+
+    </div>
+    <audio src="@Assets["funstuff/evilandscarysoundeffect.mp3"]" autoplay></audio>
 }
 
 @* Slight reminder. *@
@@ -100,7 +207,7 @@
 </p>
 
 <div class="bg-cover">
-    @if (!_apiBusy)
+    @if (!ApiBusy || Users == null || Users.Count < 0)
     {
         <div class="horizontal-alignment">
             <InputSelect class="btn" @bind-Value="SelectedId">
@@ -131,16 +238,24 @@
                             <p>(@user.WarningData.WarningCount number of warnings.)</p>
                         }
                         @* Actions you can take *@
-                        <button class="btn-no-back">
+                        <button class="btn-no-back" @onclick="async () => await RemoveEntry(user.UserData.Id)">
+                            <ImgIcon AssetLocation="@Assets["icons/delete.png"]"/>
+                        </button>
+                        <button class="btn-no-back" @onclick="async () => await KickUser(SelectedId, user.UserData.Id)">
                             <ImgIcon AssetLocation="@Assets["icons/moderation/kick.png"]"/>
                         </button>
-                        <button class="btn-no-back">
+                        <button class="btn-no-back" @onclick="async () => await BanUser(SelectedId, user.UserData.Id)">
                             <ImgIcon AssetLocation="@Assets["icons/moderation/ban.png"]"/>
                         </button>
                     </div>
                 }
             }
         </div>
+        <button class="purge" @onclick="() => PurgeAsk = true">PURGE ENTIRE SERVER!</button>
+        <p class="horizontal-alignment">
+            <ImgIcon AssetLocation="@Assets["icons/info.png"]"/>
+            The maximum number of warnings an user can get is 3. After that, they are banned.
+        </p>
     }
     else
     {

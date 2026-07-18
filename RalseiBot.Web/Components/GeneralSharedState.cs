@@ -31,7 +31,7 @@ public sealed class GeneralSharedState : INotifyPropertyChanged
     /// </summary>
     public bool IsQuestionBoxOpen
     {
-        get => field;
+        get;
         set
         {
             field = value;
@@ -64,9 +64,10 @@ public sealed class GeneralSharedState : INotifyPropertyChanged
         CurrentGuilds = await httpClient.GetFromJsonAsync<List<GuildData>>("Guild/all") ?? [];
     }
 
-    public async Task CheckIfImported(HttpClient httpClient)
+    public async Task CheckGuilds(HttpClient httpClient)
     {
-        await UpdateGuilds(httpClient);
+        var isGuildsUpdated = await httpClient.GetFromJsonAsync<DatabaseChanged>("Guild/changed");
+        if (isGuildsUpdated is { Changed: true } || CurrentGuilds.Count <= 0) await UpdateGuilds(httpClient);
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

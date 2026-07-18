@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>ralsei_bot_discord</RootNamespace>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,6 +24,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\RalseiBot.ServiceDefaults\RalseiBot.ServiceDefaults.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+        <Content Update="appsettings.Development.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
 

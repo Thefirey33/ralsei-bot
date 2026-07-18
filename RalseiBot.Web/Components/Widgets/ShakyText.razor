@@ -1,0 +1,48 @@
+
+@code {
+
+    /// <summary>
+    ///     Text to display.
+    /// </summary>
+    [Parameter]
+    public required string Text { get; set; }
+
+    /// <summary>
+    ///     The amount of shake that the text will have.
+    /// </summary>
+    public const int ShakeAmount = 3;
+
+    /// <summary>
+    ///     The amount of shakes per millisecond.
+    /// </summary>
+    private const int ShakeFrequency = 10;
+
+    /// <summary>
+    ///     Timer.
+    /// </summary>
+    private Timer? _timer;
+
+    /// <summary>
+    ///     When things are initialized, things are initialized.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        _timer = new Timer(UpdateShakyText, null, 0, ShakeFrequency);
+    }
+
+    /// <summary>
+    ///     Call the state has changed function that updates the current state of the object.
+    /// </summary>
+    private void UpdateShakyText(object? state)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+}
+
+<div class="horizontal-alignment">
+    @foreach (var character in Text)
+    {
+        <p style="transform: translate(@(Random.Shared.Next(-ShakeAmount, ShakeAmount))px, @(Random.Shared.Next(-ShakeAmount, ShakeAmount))px)">@character</p>
+    }
+</div>

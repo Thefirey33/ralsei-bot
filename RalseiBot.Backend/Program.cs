@@ -42,8 +42,11 @@ builder.Services
     .AddSingleton<ITrustDbService, TrustDbService>() // The Trusted User Database, where the trusted users are stored.
     .AddSingleton<IServerDbService, ServerDbService>() // The server configuration database.
     .AddSingleton<IWarningDbService, WarningDbService>() // The warning/moderation database.
-    .AddSingleton<ICommunicationService, CommunicationService>()
-    .AddSingleton<ResponseSystemHandler>();
+    .AddSingleton<IModerationService, ModerationService>() // The moderation service.
+    .AddSingleton<ICommunicationService, CommunicationService>() // The communication service's handler.
+    .AddSingleton<RandomQuoteHandler>(); // Displays the random activities that Ralsei might do everyday.
+
+builder.Services.AddHostedService<RandomActivityHandler>();
 
 builder.Services.AddHttpClient("RalseiBotClassification",
     client => { client.BaseAddress = new Uri("http+https://RalseiBotClassification"); });

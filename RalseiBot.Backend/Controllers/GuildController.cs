@@ -13,6 +13,17 @@ namespace ralsei_bot_discord.Controllers;
 public class GuildController(RestClient restClient) : ControllerBase
 {
     /// <summary>
+    ///     Did the total count of guilds change?
+    /// </summary>
+    private static bool _guildCountChanged;
+
+    public static void SetGuildCountChanged(bool value)
+    {
+        _guildCountChanged = value;
+    }
+
+
+    /// <summary>
     ///     Attempt to retrieve all the guilds the bot has.
     /// </summary>
     /// <returns>List of guilds that the bot has.</returns>
@@ -21,10 +32,10 @@ public class GuildController(RestClient restClient) : ControllerBase
     {
         var guilds = await restClient
             .GetCurrentUserGuildsAsync()
+            .Where(guild => (guild.Permissions & Permissions.Administrator) != 0)
             .ToListAsync();
 
         var guildConversion = guilds
-            .Where(guild => (guild.Permissions & Permissions.Administrator) != 0)
             .Select(guild => new GuildData
             {
                 Id = guild.Id,
@@ -32,6 +43,21 @@ public class GuildController(RestClient restClient) : ControllerBase
             });
 
         return Ok(guildConversion);
+    }
+
+    [HttpGet("changed")]
+    public IActionResult IsGuildCountChanged()
+    {
+        if (!_guildCountChanged)
+            return Ok(new DatabaseChanged
+            {
+                Changed = false
+            });
+        _guildCountChanged = false;
+        return Ok(new DatabaseChanged
+        {
+            Changed = true
+        });
     }
 
     /// <summary>

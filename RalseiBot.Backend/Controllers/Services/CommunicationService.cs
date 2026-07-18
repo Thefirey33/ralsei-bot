@@ -19,7 +19,7 @@ public class CommunicationService(RestClient restClient, ILogger<CommunicationSe
     /// <summary>
     ///     The key hitting penalty. Basically, how fast Ralsei will type.
     /// </summary>
-    private const int KeyHittingPenalty = 100;
+    private const int KeyHittingPenalty = 10;
 
 
     public async Task<DefaultResult> SendMessageToChannel(MessageRequest messageRequest)

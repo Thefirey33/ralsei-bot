@@ -1,3 +1,4 @@
+using System.Data;
 using MySqlConnector;
 using NetCord.Rest;
 using ralsei_bot_discord.Types.Database;
@@ -119,10 +120,16 @@ public class ServerDbService(
         {
             Id = reader.GetInt32("id"),
             Name = guildInformation.Name,
-            GuildId = reader.GetUInt64("guild_id"),
-            GeneralChannelId = reader.GetUInt64("general_channel_id"),
-            ModerationChannelId = reader.GetUInt64("moderation_channel_id"),
-            RalseiChannelId = reader.GetUInt64("ralsei_channel_id")
+            GuildId = await reader.IsDBNullAsync("guild_id") ? null : reader.GetUInt64("guild_id"),
+            GeneralChannelId = await reader.IsDBNullAsync("general_channel_id")
+                ? null
+                : reader.GetUInt64("general_channel_id"),
+            ModerationChannelId = await reader.IsDBNullAsync("moderation_channel_id")
+                ? null
+                : reader.GetUInt64("moderation_channel_id"),
+            RalseiChannelId = await reader.IsDBNullAsync("ralsei_channel_id")
+                ? null
+                : reader.GetUInt64("ralsei_channel_id")
         };
 
         await connection.CloseAsync();

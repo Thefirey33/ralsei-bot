@@ -36,12 +36,12 @@
     /// <summary>
     ///     Is the API busy?
     /// </summary>
-    private bool ApiBusy;
+    private bool _apiBusy;
 
     /// <summary>
     ///     If the API is busy loading tasks, this boolean will be set to true.
     /// </summary>
-    private bool BusyLoading => Channels == null || !Channels.Any() || ApiBusy;
+    private bool BusyLoading => Channels == null || !Channels.Any() || _apiBusy;
 
     /// <summary>
     ///     When the bot initializes, initialize the first guild immediately.
@@ -50,7 +50,7 @@
     {
         _client = ClientFactory.CreateClient("RalseiBotBackend");
 
-        await SharedState.CheckIfImported(_client);
+        await SharedState.CheckGuilds(_client);
         SelectedId = SharedState.CurrentGuilds.First().Id;
 
         // Attempt to retrieve all guild data.
@@ -73,12 +73,12 @@
             return;
         try
         {
-            ApiBusy = true;
+            _apiBusy = true;
             Channels = await _client.GetFromJsonAsync<List<ChannelData>>($"Guild/channels/{guildId}");
         }
         finally
         {
-            ApiBusy = false;
+            _apiBusy = false;
         }
     }
 

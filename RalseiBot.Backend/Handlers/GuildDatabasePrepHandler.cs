@@ -2,6 +2,7 @@ using NetCord;
 using NetCord.Gateway;
 using NetCord.Hosting.Gateway;
 using NetCord.Rest;
+using ralsei_bot_discord.Controllers;
 using ralsei_bot_discord.Controllers.Services;
 using ralsei_bot_discord.Types.Database;
 
@@ -28,6 +29,7 @@ public class GuildDatabasePrepHandler(
     /// <param name="arg">The deletion arguments.</param>
     public async ValueTask HandleAsync(GuildDeleteEventArgs arg)
     {
+        GuildController.SetGuildCountChanged(true);
         logger.LogInformation("USER deleted from guild: {Id}, removing from DB...", arg.GuildId);
         await serverDbService.RemoveEntry(arg.GuildId);
     }
@@ -36,8 +38,9 @@ public class GuildDatabasePrepHandler(
     ///     Scans and configures the specified guild.
     /// </summary>
     /// <param name="guildId">The specified Guild ID to search for.</param>
-    public async Task ScanAndConfigureGuild(ulong guildId)
+    private async Task ScanAndConfigureGuild(ulong guildId)
     {
+        GuildController.SetGuildCountChanged(true);
         var channels = await restClient.GetGuildChannelsAsync(guildId);
         await serverDbService.AddEntry(new GuildData
         {

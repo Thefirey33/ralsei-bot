@@ -21,5 +21,14 @@
     "unfortunately, you broke the rules, so i have to act...",
     "sorry.. you broke the rules...",
     "sorry... rule breaking..."
+  ],
+  "Kicked": [
+    "<:ralsei_sad:1523124485010489607> {0} was kicked due to {1}...",
+    "<:ralsei_sad:1523124485010489607> bye {0}... they were gone because {1}...",
+    "<:ralsei_sad:1523124485010489607> goodbye {0} because {1}.."
+  ],
+  "Banned": [
+    "<:ralsei_sad:1523124485010489607> {0} was BANISHED from castle town due to {1}!!",
+    "<:ralsei_sad:1523124485010489607> {0} was banned from entry due to {1}..."
   ]
 }

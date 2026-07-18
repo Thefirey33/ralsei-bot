@@ -15,7 +15,7 @@ namespace ralsei_bot_discord.Controllers;
 [Route("[controller]/messages")]
 public class CommunicationController(
     RestClient restClient,
-    ResponseSystemHandler systemHandler,
+    RandomQuoteHandler systemHandler,
     ILogger<CommunicationController> logger,
     ICommunicationService communicationService) : ControllerBase
 {
@@ -109,8 +109,8 @@ public class CommunicationController(
             {
                 ChannelId = channelId,
                 Message = systemHandler.GetRandomResponse(isChannelLocked
-                    ? ResponseSystemHandler.ResponseTypes.LockChannel
-                    : ResponseSystemHandler.ResponseTypes.UnlockChannel)
+                    ? RandomQuoteHandler.ResponseTypes.LockChannel
+                    : RandomQuoteHandler.ResponseTypes.UnlockChannel)
             });
 
             // Finally, modify it.

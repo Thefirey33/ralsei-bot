@@ -32,10 +32,10 @@ public class WarningDbController(IWarningDbService warningDbService) : Controlle
     ///     Delete an entry from the database by ID.
     /// </summary>
     /// <param name="id">ID reference.</param>
-    [HttpDelete("delete/{id:int}")]
-    public async Task<IActionResult> DeleteEntry(int id)
+    [HttpDelete("delete/{userId}")]
+    public async Task<IActionResult> DeleteEntry(ulong userId)
     {
-        return Ok(await warningDbService.DeleteEntryById(id));
+        return Ok(await warningDbService.DeleteEntryById(userId));
     }
 
     /// <summary>

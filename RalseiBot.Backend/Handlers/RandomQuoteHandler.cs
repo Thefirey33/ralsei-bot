@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace ralsei_bot_discord.Handlers;
 
-public class ResponseSystemHandler
+public class RandomQuoteHandler
 {
     /// <summary>
     ///     These specify the responses that Ralsei can give.
@@ -48,7 +48,17 @@ public class ResponseSystemHandler
         /// <summary>
         ///     When messages are purged.
         /// </summary>
-        RuleViolation
+        RuleViolation,
+
+        /// <summary>
+        ///     Random activities that the bot will do throughout the day.
+        /// </summary>
+        RandomActivities,
+
+        /// <summary>
+        ///     When the bot is sleeping.
+        /// </summary>
+        FluffySleep
     }
 
     /// <summary>
@@ -56,7 +66,7 @@ public class ResponseSystemHandler
     /// </summary>
     private readonly LinkedList<Dictionary<ResponseTypes, List<string>>> _responses = [];
 
-    public ResponseSystemHandler(ILogger<ResponseSystemHandler> logger)
+    public RandomQuoteHandler(ILogger<RandomQuoteHandler> logger)
     {
         // Import the responses that are needed.
         foreach (var directory in Directory.GetFiles("./ResponseResources"))
@@ -91,9 +101,12 @@ public class ResponseSystemHandler
                         .Select(pair => pair.Value)
                         .ToList()
                 )
-                .ElementAt(Random.Shared.Next(0, _responses.Count));
+                .Where(list => list.Count > 0)
+                .ToList();
 
-        var randomPickedResponseTree = allResponses[Random.Shared.Next(0, allResponses.Count)];
-        return randomPickedResponseTree[Random.Shared.Next(0, randomPickedResponseTree.Count)];
+        var eligibleResponses = allResponses[Random.Shared.Next(allResponses.Count)];
+
+        var randomPickedResponseTree = eligibleResponses[Random.Shared.Next(eligibleResponses.Count)];
+        return randomPickedResponseTree[Random.Shared.Next(randomPickedResponseTree.Count)];
     }
 }

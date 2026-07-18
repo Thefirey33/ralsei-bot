@@ -44,7 +44,6 @@ body {
     background-color: black;
     color: white;
     display: flex;
-    image-rendering: pixelated;
     flex-direction: column;
     font-family: 'Determination', monospace;
 }
@@ -64,6 +63,7 @@ body {
     background-color: black;
     color: white;
     display: flex;
+    justify-content: center;
     flex-direction: row;
     text-align: center;
     align-items: center;

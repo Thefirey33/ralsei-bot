@@ -35,7 +35,7 @@ async def filter_text(message_content_request: MessageTextRequest):
     # If it's detected that it contains offensive media, it's OFFENSIVE.
     return MessageModerationResponse(
         is_nsfw=nsfw_category != 0,
-        is_hateful=result_offensive["label"] == "offensive",
+        is_hateful=result_offensive["label"] == "offensive" and result_offensive["score"] > 0.7,
     )
 
 
