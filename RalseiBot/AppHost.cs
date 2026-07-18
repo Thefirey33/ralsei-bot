@@ -12,6 +12,7 @@ builder.Services
 
 var mySql = builder
     .AddMySql("MySQLDatabase")
+    .WithImageTag("8.4")
     .WithDataVolume(isReadOnly: false)
     .WithPhpMyAdmin(phpAdmin => phpAdmin.WithHostPort(3000))
     .WithLifetime(ContainerLifetime.Persistent)
