@@ -11,7 +11,7 @@ builder.Services
     .AddDnsServiceEndpointProvider();
 
 var mySql = builder
-    .AddMySql("MySQLDatabase")
+    .AddMySql("mysql")
     .WithImageTag("8.0-debian")
     .WithDataVolume(isReadOnly: false)
     .WithPhpMyAdmin(phpAdmin => phpAdmin.WithHostPort(3000))
@@ -87,14 +87,13 @@ var warningb = mySql.AddDatabase("WarningDB")
 // Each of the databases will connect to this project, where it will manage it.
 
 var filteringService = builder.AddUvicornApp(
-        "RalseiBotClassification",
+        "ralseibotclassification",
         "../RalseiBot.Classification",
         "main:app")
-    .WithHttpEndpoint(5000, env: "PORT")
-    .PublishAsDockerComposeService((resource, service) => { service.Name = "classification"; });
+    .WithHttpEndpoint(5000, env: "PORT");
 
 var backendService
-    = builder.AddProject<RalseiBot_Backend>("RalseiBotBackend")
+    = builder.AddProject<RalseiBot_Backend>("ralseibotbackend")
         .WithHttpEndpoint(8080)
         .WithReference(filteringService)
         .WaitFor(filteringService)
@@ -103,15 +102,13 @@ var backendService
         .WithReference(trustedUser)
         .WithReference(serverDb)
         .WithReference(warningb)
-        .WithComputeEnvironment(compose)
-        .PublishAsDockerComposeService((resource, service) => { service.Name = "backend"; });
+        .WithComputeEnvironment(compose);
 
 
-builder.AddProject<RalseiBot_Web>("RalseiBotFrontend")
+builder.AddProject<RalseiBot_Web>("ralseibotfrontend")
     .WithReference(backendService)
     .WithExternalHttpEndpoints()
     .WithHttpEndpoint(8000, isProxied: false)
-    .WaitFor(backendService)
-    .PublishAsDockerComposeService((resource, service) => { service.Name = "frontend"; });
+    .WaitFor(backendService);
 
 builder.Build().Run();

@@ -12,7 +12,7 @@ public class FrontEndSecurityController(
     IHttpContextAccessor httpContextAccessor)
     : ControllerBase
 {
-    private readonly HttpClient _httpClient = clientFactory.CreateClient("RalseiBotBackend");
+    private readonly HttpClient _httpClient = clientFactory.CreateClient("ralseibotbackend");
     private readonly HttpContext? _httpContext = httpContextAccessor.HttpContext;
 
     /// <summary>

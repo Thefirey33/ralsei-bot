@@ -11,5 +11,15 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="mysql" uuid="2f89bf2f-984a-47ac-9184-e3a1bce8e86f">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:32837/?user=root&amp;password=gvus%7B2Pq%7DPR1%2BSyXn*cGM%28</jdbc-url>
+      <jdbc-additional-properties>
+        <property name="aspireResourceId" value="mysql-1d86832a" />
+      </jdbc-additional-properties>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

@@ -28,7 +28,7 @@ public class GuildMessagesHandler(
     /// <summary>
     ///     The HTTP Client for communicating with the Python Filtering Service.
     /// </summary>
-    private readonly HttpClient? _httpClient = httpClientFactory.CreateClient("RalseiBotClassification");
+    private readonly HttpClient? _httpClient = httpClientFactory.CreateClient("ralseibotclassification");
 
 
     private readonly Dictionary<RandomQuoteHandler.ResponseTypes, List<string>> _keywords = new()

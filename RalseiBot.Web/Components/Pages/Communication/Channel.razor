@@ -87,10 +87,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var connectionUrl = Environment.GetEnvironmentVariable("services__RalseiBotBackend__http__0");
+        var connectionUrl = Environment.GetEnvironmentVariable("services__ralseibotbackend__http__0");
 
 
-        Client = ClientFactory.CreateClient("RalseiBotBackend");
+        Client = ClientFactory.CreateClient("ralseibotbackend");
         MessageData ??= await Client.GetFromJsonAsync<List<MessageData>>($"Communication/messages/{Id}");
         UserData ??= await Client.GetFromJsonAsync<UserData>("Information/user");
         EmojiData ??= await Client.GetFromJsonAsync<List<EmojiData>>($"Guild/emojis/{GuildId}");

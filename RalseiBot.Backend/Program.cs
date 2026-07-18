@@ -48,8 +48,8 @@ builder.Services
 
 builder.Services.AddHostedService<RandomActivityHandler>();
 
-builder.Services.AddHttpClient("RalseiBotClassification",
-    client => { client.BaseAddress = new Uri("http+https://RalseiBotClassification"); });
+builder.Services.AddHttpClient("ralseibotclassification",
+    client => { client.BaseAddress = new Uri("http+https://ralseibotclassification"); });
 
 // Security
 // This is handled using a JWT Bearer Token system, where a cookie will store the specified access token.

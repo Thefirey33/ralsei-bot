@@ -53,7 +53,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        HttpClient = ClientFactory.CreateClient("RalseiBotBackend");
+        HttpClient = ClientFactory.CreateClient("ralseibotbackend");
         await SharedState.CheckGuilds(HttpClient);
 
         SelectedId = SharedState.CurrentGuilds.First().Id;

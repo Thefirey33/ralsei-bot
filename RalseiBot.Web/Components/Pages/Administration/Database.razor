@@ -44,7 +44,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _httpClient = ClientFactory.CreateClient("RalseiBotBackend");
+        _httpClient = ClientFactory.CreateClient("ralseibotbackend");
         if (bool.TryParse(await _httpClient.GetStringAsync("DatabaseChecker"), out var result))
             _databaseIsOk = result;
 

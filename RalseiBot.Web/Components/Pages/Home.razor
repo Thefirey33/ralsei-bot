@@ -15,7 +15,7 @@
     protected override async Task OnInitializedAsync()
     {
         // Attempt to fetch the general information that the bot needs.
-        Client = ClientFactory.CreateClient("RalseiBotBackend");
+        Client = ClientFactory.CreateClient("ralseibotbackend");
         _data = await Client.GetFromJsonAsync<InformationData>("Information");
         Logger.LogInformation("Displaying data {Data} to information panel", JsonSerializer.Serialize(_data));
     }

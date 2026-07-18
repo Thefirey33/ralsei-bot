@@ -48,7 +48,7 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        _client = ClientFactory.CreateClient("RalseiBotBackend");
+        _client = ClientFactory.CreateClient("ralseibotbackend");
 
         await SharedState.CheckGuilds(_client);
         SelectedId = SharedState.CurrentGuilds.First().Id;
