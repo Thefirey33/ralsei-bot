@@ -13,9 +13,6 @@ builder.Services
 var mySql = builder
     .AddMySql("mysql")
     .WithImageTag("8.0-debian")
-    .WithDataVolume(isReadOnly: false)
-    .WithPhpMyAdmin(phpAdmin =>
-        phpAdmin.WithHostPort(3000))
     .WithLifetime(ContainerLifetime.Persistent);
 
 // Databases for the Ralsei Bot.
@@ -26,16 +23,17 @@ var mySql = builder
 #region Databases
 
 // The Score DB. This is the high score that the user will have. 
-var scoredb = mySql.AddDatabase("scoredb");
+var scoreDb = mySql.AddDatabase("scoredb");
 // Trusted User Database.
 // Each trusted user is put into this database and the bot will NOT kick them for being too new.
-var trustedUser = mySql.AddDatabase("trustdb");
+var trustedDb = mySql.AddDatabase("trustdb");
 
 // Server Database.
 // This is where the bot configures itself for each server.
 var serverdb = mySql.AddDatabase("serverdb");
 
-var warningb = mySql.AddDatabase("warningdb");
+// Where the amount of warnings each user has is stored.
+var warningDb = mySql.AddDatabase("warningdb");
 
 #endregion
 
@@ -46,29 +44,27 @@ var filteringService = builder.AddUvicornApp(
         "ralseibotclassification",
         "../RalseiBot.Classification",
         "main:app")
-    .WithHttpEndpoint(5000, 5000, env: "PORT");
+    .WithHttpEndpoint(5000, 5000, env: "PORT", isProxied: false);
 
 var backendService
     = builder.AddProject<RalseiBot_Backend>("ralseibotbackend")
-        .WithHttpEndpoint(8080, 8080)
-        .WithEnvironment("ASPNETCORE_HTTP_PORTS", "8080")
+        .WithHttpEndpoint(8080, 8080, isProxied: false)
         .WaitFor(filteringService)
         .WithReference(filteringService)
         .WaitFor(mySql)
-        .WaitFor(scoredb)
-        .WaitFor(trustedUser)
-        .WaitFor(warningb)
+        .WaitFor(scoreDb)
+        .WaitFor(trustedDb)
+        .WaitFor(warningDb)
         .WaitFor(serverdb)
-        .WithReference(scoredb)
-        .WithReference(trustedUser)
+        .WithReference(scoreDb)
+        .WithReference(trustedDb)
         .WithReference(serverdb)
-        .WithReference(warningb);
+        .WithReference(warningDb);
 
 
 builder.AddProject<RalseiBot_Web>("ralseibotfrontend")
     .WithReference(backendService)
     .WithExternalHttpEndpoints()
-    .WithEnvironment("ASPNETCORE_HTTP_PORTS", "8000")
     .WithHttpEndpoint(8000, 8000, isProxied: false)
     .WaitFor(backendService);
 

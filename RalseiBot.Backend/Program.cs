@@ -3,7 +3,6 @@
 
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NetCord;
 using NetCord.Gateway;
@@ -33,16 +32,12 @@ builder.Logging
 builder.Services.AddSignalR()
     .AddHubOptions<MessagingHub>(options => { options.MaximumReceiveMessageSize = 10 * 1024 * 1024; });
 
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 0));
 // Register all the database contexts.
-builder.AddMySqlDbContext<ScoreDbContext>("scoredb",
-    configureDbContextOptions: options => { options.UseMySql(serverVersion); });
-builder.AddMySqlDbContext<TrustDataContext>("trustdb",
-    configureDbContextOptions: options => { options.UseMySql(serverVersion); });
-builder.AddMySqlDbContext<GuildDbContext>("serverdb",
-    configureDbContextOptions: options => { options.UseMySql(serverVersion); });
-builder.AddMySqlDbContext<WarningDbContext>("warningdb",
-    configureDbContextOptions: options => { options.UseMySql(serverVersion); });
+const string serverVersion = "8.0.46";
+builder.AddMySqlDbContext<ScoreDbContext>("scoredb", settings => settings.ServerVersion = serverVersion);
+builder.AddMySqlDbContext<TrustDataContext>("trustdb", settings => settings.ServerVersion = serverVersion);
+builder.AddMySqlDbContext<GuildDbContext>("serverdb", settings => settings.ServerVersion = serverVersion);
+builder.AddMySqlDbContext<WarningDbContext>("warningdb", settings => settings.ServerVersion = serverVersion);
 
 // These are the shared services that each API controller will have.
 builder.Services
