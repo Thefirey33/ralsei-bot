@@ -51,23 +51,24 @@ var filteringService = builder.AddUvicornApp(
 var backendService
     = builder.AddProject<RalseiBot_Backend>("ralseibotbackend")
         .WithHttpEndpoint(8080, 8080)
-        .WithReference(filteringService)
+        .WithEnvironment("ASPNETCORE_HTTP_PORTS", "8080")
         .WaitFor(filteringService)
-        .WithReference(scoredb)
-        .WithReference(trustedUser)
-        .WithReference(serverdb)
-        .WithReference(warningb)
+        .WithReference(filteringService)
         .WaitFor(mySql)
         .WaitFor(scoredb)
         .WaitFor(trustedUser)
         .WaitFor(warningb)
         .WaitFor(serverdb)
-        .WithComputeEnvironment(compose);
+        .WithReference(scoredb)
+        .WithReference(trustedUser)
+        .WithReference(serverdb)
+        .WithReference(warningb);
 
 
 builder.AddProject<RalseiBot_Web>("ralseibotfrontend")
     .WithReference(backendService)
     .WithExternalHttpEndpoints()
+    .WithEnvironment("ASPNETCORE_HTTP_PORTS", "8000")
     .WithHttpEndpoint(8000, 8000, isProxied: false)
     .WaitFor(backendService);
 
