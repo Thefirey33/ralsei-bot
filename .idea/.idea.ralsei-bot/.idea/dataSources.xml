@@ -11,13 +11,23 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="mysql" uuid="352c139e-eddd-4352-a3b2-0cb5294cf53e">
+    <data-source source="LOCAL" name="mysql" uuid="719f29c7-79e0-4629-80b6-1978a470876b">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:34233/?user=root&amp;password=gvus%7B2Pq%7DPR1%2BSyXn*cGM%28</jdbc-url>
+      <jdbc-url>jdbc:mysql://localhost:32868/?user=root&amp;password=gvus%7B2Pq%7DPR1%2BSyXn*cGM%28</jdbc-url>
       <jdbc-additional-properties>
         <property name="aspireResourceId" value="mysql-1d86832a" />
+      </jdbc-additional-properties>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="cache" uuid="9ae7b48d-07c6-4860-9358-264c7f2cc1ad">
+      <driver-ref>redis</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>jdbc.RedisDriver</jdbc-driver>
+      <jdbc-url>jdbc:redis://bkx678Q98YjUSMuUZx9A7v@localhost:32875?ssl=true&amp;verifyServerCertificate=false</jdbc-url>
+      <jdbc-additional-properties>
+        <property name="aspireResourceId" value="cache-tryxquyp" />
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>

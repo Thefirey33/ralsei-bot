@@ -16,7 +16,8 @@ var mySql = builder
     .WithDataVolume(isReadOnly: false)
     .WithPhpMyAdmin(phpAdmin =>
         phpAdmin.WithHostPort(3000))
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsDockerComposeService((resource, service) => service.Name = "mysql");
 
 // Databases for the Ralsei Bot.
 // Each one of these databases depend on the MySQL database at the top, and each one with their own unique purpose.
@@ -57,11 +58,13 @@ var backendService
         .WithReference(trustedUser)
         .WithReference(serverdb)
         .WithReference(warningb)
+        .WaitFor(mySql)
         .WaitFor(scoredb)
         .WaitFor(trustedUser)
         .WaitFor(warningb)
         .WaitFor(serverdb)
-        .WithComputeEnvironment(compose);
+        .WithComputeEnvironment(compose)
+        .PublishAsDockerComposeService((resource, service) => service.Name = "backend");
 
 
 builder.AddProject<RalseiBot_Web>("ralseibotfrontend")
