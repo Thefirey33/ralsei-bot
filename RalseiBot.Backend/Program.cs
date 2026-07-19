@@ -33,13 +33,13 @@ builder.Services.AddSignalR()
 
 // Register the MySQL databases.
 builder.AddKeyedMySqlDataSource("scoredb");
-builder.AddKeyedMySqlDataSource("TrustDB");
+builder.AddKeyedMySqlDataSource("trustdb");
 builder.AddKeyedMySqlDataSource("warningdb");
 builder.AddKeyedMySqlDataSource("serverdb");
 
 // These are the shared services that each API controller will have.
 builder.Services
-    .AddSingleton<ITrustDbService, TrustDbService>() // The Trusted User Database, where the trusted users are stored.
+    .AddSingleton<ItrustdbService, trustdbService>() // The Trusted User Database, where the trusted users are stored.
     .AddSingleton<IserverdbService, serverdbService>() // The server configuration database.
     .AddSingleton<IwarningdbService, warningdbService>() // The warning/moderation database.
     .AddSingleton<IModerationService, ModerationService>() // The moderation service.

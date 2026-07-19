@@ -42,10 +42,10 @@ var scoredb =
 // Trusted User Database.
 // Each trusted user is put into this database and the bot will NOT kick them for being too new.
 var trustedUser =
-    mySql.AddDatabase("TrustDB")
+    mySql.AddDatabase("trustdb")
         .WithCreationScript("""
-                            CREATE DATABASE IF NOT EXISTS TrustDB;
-                            CREATE TABLE IF NOT EXISTS TrustDB.users (
+                            CREATE DATABASE IF NOT EXISTS trustdb;
+                            CREATE TABLE IF NOT EXISTS trustdb.users (
                                 id INT AUTO_INCREMENT PRIMARY KEY,
                                 user_id BIGINT NOT NULL
                             );
@@ -96,11 +96,14 @@ var backendService
         .WithHttpEndpoint(8080)
         .WithReference(filteringService)
         .WaitFor(filteringService)
-        .WaitFor(mySql) // Database Reference Section. Where the databases are referenced and processed.
         .WithReference(scoredb)
         .WithReference(trustedUser)
         .WithReference(serverdb)
         .WithReference(warningb)
+        .WaitFor(scoredb)
+        .WaitFor(trustedUser)
+        .WaitFor(warningb)
+        .WaitFor(serverdb)
         .WithComputeEnvironment(compose);
 
 

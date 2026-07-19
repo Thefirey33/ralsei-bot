@@ -52,16 +52,16 @@
         if (!FetchingDatabaseInformation)
             return;
 
-        await ReloadTrustDbEntries();
+        await ReloadtrustdbEntries();
         await ReloadserverdbEntries();
     }
 
     /// <summary>
     ///     Reload the trust database entries.
     /// </summary>
-    private async Task ReloadTrustDbEntries()
+    private async Task ReloadtrustdbEntries()
     {
-        TrustData = await _httpClient?.GetFromJsonAsync<List<TrustData>>("TrustDb/")!;
+        TrustData = await _httpClient?.GetFromJsonAsync<List<TrustData>>("trustdb/")!;
     }
 
     private async Task ReloadserverdbEntries()
@@ -72,22 +72,22 @@
     /// <summary>
     ///     Add an entry to the database trust entry.
     /// </summary>
-    private async Task AddTrustDbEntry()
+    private async Task AddtrustdbEntry()
     {
         if (_httpClient == null)
             return;
 
-        var result = await _httpClient.PostAsJsonAsync("TrustDb", _trustDataModel);
+        var result = await _httpClient.PostAsJsonAsync("trustdb", _trustDataModel);
 
         if (result.IsSuccessStatusCode)
-            await ReloadTrustDbEntries();
+            await ReloadtrustdbEntries();
     }
 
     /// <summary>
     ///     Delete an entry from the trust database.
     /// </summary>
     /// <param name="userId">The ID to reference when deleting.</param>
-    private async Task DeleteTrustDbEntry(long userId)
+    private async Task DeletetrustdbEntry(long userId)
     {
         // If the user confirms to delete it,
         // Delete the entry.
@@ -95,7 +95,7 @@
         if (_httpClient == null)
             return;
 
-        var message = new HttpRequestMessage(HttpMethod.Delete, "TrustDb")
+        var message = new HttpRequestMessage(HttpMethod.Delete, "trustdb")
         {
             Content = JsonContent.Create(new TrustRequestData
             {
@@ -104,7 +104,7 @@
         };
         var result = await _httpClient.SendAsync(message);
         if (result.IsSuccessStatusCode)
-            await ReloadTrustDbEntries();
+            await ReloadtrustdbEntries();
     }
 
 }
@@ -151,7 +151,7 @@ else
                     <td>@data.Id</td>
                     <td>@data.UserId</td>
                     <td>
-                        <button class="btn-no-back" @onclick="() => DeleteTrustDbEntry(data.UserId)">
+                        <button class="btn-no-back" @onclick="() => DeletetrustdbEntry(data.UserId)">
                             <ImgIcon AssetLocation="@Assets["icons/delete.png"]"></ImgIcon>
                         </button>
                     </td>
@@ -161,7 +161,7 @@ else
     </table>
     <p>@(TrustData?.Count) items in Database.</p>
     @* This code allows the addition to the trusted user database. *@
-    <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddTrustDbEntry">
+    <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddtrustdbEntry">
         <label>
             <InputNumber class="btn" @bind-Value="_trustDataModel.UserId"
                          placeholder="User Id of the user to trust..."/>

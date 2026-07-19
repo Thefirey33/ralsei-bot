@@ -7,7 +7,7 @@ namespace ralsei_bot_discord.Handlers;
 
 public class GuildMemberHandler(
     IModerationService moderationService,
-    ITrustDbService trustDbService,
+    ItrustdbService trustdbService,
     ILogger<GuildMemberHandler> logger)
     : IGuildUserAddGatewayHandler
 {
@@ -15,7 +15,7 @@ public class GuildMemberHandler(
     {
         // Check the joining user for several conditions.
 
-        if (await trustDbService.UserExistsInDb(new TrustRequestData
+        if (await trustdbService.UserExistsInDb(new TrustRequestData
             {
                 UserId = Convert.ToInt64(arg.Id)
             }))

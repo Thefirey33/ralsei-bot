@@ -8,14 +8,14 @@ namespace ralsei_bot_discord.Controllers.Database;
 ///     This checks the status of the database of the bot.
 /// </summary>
 /// <param name="serverdbSource">The serverdb, is where the server's individual channels are managed.</param>
-/// <param name="trustDbSource">The TrustDB, is where trusted users are added.</param>
+/// <param name="trustdbSource">The trustdb, is where trusted users are added.</param>
 /// <param name="scoredbSource">The scoredb, is where high-scores of games are stored.</param>
 [ApiController]
 [Authorize]
 [Route("[controller]")]
 public class DatabaseCheckerController(
     [FromKeyedServices("serverdb")] MySqlDataSource serverdbSource,
-    [FromKeyedServices("TrustDB")] MySqlDataSource trustDbSource,
+    [FromKeyedServices("trustdb")] MySqlDataSource trustdbSource,
     [FromKeyedServices("scoredb")] MySqlDataSource scoredbSource,
     [FromKeyedServices("warningdb")] MySqlDataSource warningdbSource) : ControllerBase
 {
@@ -31,16 +31,16 @@ public class DatabaseCheckerController(
         // It will report an unhealthy status.
 
         await using var serverdbConnection = await serverdbSource.OpenConnectionAsync();
-        await using var trustDbConnection = await trustDbSource.OpenConnectionAsync();
+        await using var trustdbConnection = await trustdbSource.OpenConnectionAsync();
         await using var scoredbConnection = await scoredbSource.OpenConnectionAsync();
         await using var warningdbConnection = await warningdbSource.OpenConnectionAsync();
 
         // Ping each database and check individually for their connections.
-        var isDatabaseAllActive = await serverdbConnection.PingAsync() && await trustDbConnection.PingAsync() &&
+        var isDatabaseAllActive = await serverdbConnection.PingAsync() && await trustdbConnection.PingAsync() &&
                                   await scoredbConnection.PingAsync() && await warningdbConnection.PingAsync();
 
         // Close the database connections.
-        await trustDbConnection.CloseAsync();
+        await trustdbConnection.CloseAsync();
         await serverdbConnection.CloseAsync();
         await scoredbConnection.CloseAsync();
         await warningdbConnection.CloseAsync();

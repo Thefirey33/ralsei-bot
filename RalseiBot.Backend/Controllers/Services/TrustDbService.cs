@@ -3,7 +3,7 @@ using ralsei_bot_discord.Types.Database;
 
 namespace ralsei_bot_discord.Controllers.Services;
 
-public interface ITrustDbService
+public interface ItrustdbService
 {
     /// <summary>
     ///     Get all the users in the trusted database.
@@ -30,7 +30,7 @@ public interface ITrustDbService
     public Task<bool> UserExistsInDb(TrustRequestData data);
 }
 
-public class TrustDbService([FromKeyedServices("TrustDB")] MySqlDataSource trustDbSource) : ITrustDbService
+public class trustdbService([FromKeyedServices("trustdb")] MySqlDataSource trustdbSource) : ItrustdbService
 {
     /// <summary>
     ///     Get all the trusted users in the database.
@@ -38,7 +38,7 @@ public class TrustDbService([FromKeyedServices("TrustDB")] MySqlDataSource trust
     /// <returns>Trusted users.</returns>
     public async Task<List<TrustData>> GetAllTrusts()
     {
-        await using var connection = await trustDbSource.OpenConnectionAsync();
+        await using var connection = await trustdbSource.OpenConnectionAsync();
         var trustData = new List<TrustData>();
 
         var command = new MySqlCommand("SELECT * FROM users;", connection);
@@ -62,7 +62,7 @@ public class TrustDbService([FromKeyedServices("TrustDB")] MySqlDataSource trust
     /// <param name="data">Request Data.</param>
     public async Task PostUser(TrustRequestData data)
     {
-        await using var connection = await trustDbSource.OpenConnectionAsync();
+        await using var connection = await trustdbSource.OpenConnectionAsync();
         var command = new MySqlCommand("INSERT INTO users(user_id) VALUES (@user_id);", connection);
         command.Parameters.AddWithValue("@user_id", data.UserId);
         await command.ExecuteNonQueryAsync();
@@ -75,7 +75,7 @@ public class TrustDbService([FromKeyedServices("TrustDB")] MySqlDataSource trust
     /// <param name="data">Request Data.</param>
     public async Task DeleteUser(TrustRequestData data)
     {
-        await using var connection = await trustDbSource.OpenConnectionAsync();
+        await using var connection = await trustdbSource.OpenConnectionAsync();
         var command = new MySqlCommand("DELETE FROM users WHERE user_id=@user_id;", connection);
         command.Parameters.AddWithValue("@user_id", data.UserId);
         await command.ExecuteNonQueryAsync();
@@ -88,7 +88,7 @@ public class TrustDbService([FromKeyedServices("TrustDB")] MySqlDataSource trust
     /// <param name="data">Request Data.</param>
     public async Task<bool> UserExistsInDb(TrustRequestData data)
     {
-        await using var connection = await trustDbSource.OpenConnectionAsync();
+        await using var connection = await trustdbSource.OpenConnectionAsync();
         var command = new MySqlCommand("SELECT count(*) FROM users WHERE user_id=@user_id");
         command.Parameters.AddWithValue("@user_id", data.UserId);
 
