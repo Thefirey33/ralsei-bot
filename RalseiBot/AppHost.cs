@@ -16,8 +16,7 @@ var mySql = builder
     .WithDataVolume(isReadOnly: false)
     .WithPhpMyAdmin(phpAdmin =>
         phpAdmin.WithHostPort(3000))
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsDockerComposeService((resource, service) => service.Name = "mysql");
+    .WithLifetime(ContainerLifetime.Persistent);
 
 // Databases for the Ralsei Bot.
 // Each one of these databases depend on the MySQL database at the top, and each one with their own unique purpose.
@@ -47,11 +46,11 @@ var filteringService = builder.AddUvicornApp(
         "ralseibotclassification",
         "../RalseiBot.Classification",
         "main:app")
-    .WithHttpEndpoint(5000, env: "PORT");
+    .WithHttpEndpoint(5000, 5000, env: "PORT");
 
 var backendService
     = builder.AddProject<RalseiBot_Backend>("ralseibotbackend")
-        .WithHttpEndpoint(8080)
+        .WithHttpEndpoint(8080, 8080)
         .WithReference(filteringService)
         .WaitFor(filteringService)
         .WithReference(scoredb)
@@ -63,14 +62,13 @@ var backendService
         .WaitFor(trustedUser)
         .WaitFor(warningb)
         .WaitFor(serverdb)
-        .WithComputeEnvironment(compose)
-        .PublishAsDockerComposeService((resource, service) => service.Name = "backend");
+        .WithComputeEnvironment(compose);
 
 
 builder.AddProject<RalseiBot_Web>("ralseibotfrontend")
     .WithReference(backendService)
     .WithExternalHttpEndpoints()
-    .WithHttpEndpoint(8000, isProxied: false)
+    .WithHttpEndpoint(8000, 8000, isProxied: false)
     .WaitFor(backendService);
 
 builder.Build().Run();
