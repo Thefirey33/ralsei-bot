@@ -64,7 +64,7 @@ public class GuildMessagesHandler(
             .GetCurrentUserAsync();
 
 
-        var result = await _httpClient.PostAsJsonAsync("/filter_text", new MessageTextRequest
+        /*var result = await _httpClient.PostAsJsonAsync("/filter_text", new MessageTextRequest
         {
             Text = message.Content
         });
@@ -93,7 +93,7 @@ public class GuildMessagesHandler(
             })!;
 
             await message.DeleteAsync();
-        }
+        }*/
 
         await CheckResponse();
         return;

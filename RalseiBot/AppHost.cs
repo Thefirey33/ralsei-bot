@@ -40,17 +40,17 @@ var warningDb = mySql.AddDatabase("warningdb");
 // The Backend for the Ralsei Bot.
 // Each of the databases will connect to this project, where it will manage it.
 
-var filteringService = builder.AddUvicornApp(
-        "ralseibotclassification",
-        "../RalseiBot.Classification",
-        "main:app")
-    .WithHttpEndpoint(5000, 5000, env: "PORT", isProxied: false);
+// var filteringService = builder.AddUvicornApp(
+//         "ralseibotclassification",
+//         "../RalseiBot.Classification",
+//         "main:app")
+//     .WithHttpEndpoint(5000, 5000, env: "PORT", isProxied: false);
 
 var backendService
     = builder.AddProject<RalseiBot_Backend>("ralseibotbackend")
         .WithHttpEndpoint(8080, 8080, isProxied: false)
-        .WaitFor(filteringService)
-        .WithReference(filteringService)
+        // .WaitFor(filteringService)
+        // .WithReference(filteringService)
         .WaitFor(mySql)
         .WaitFor(scoreDb)
         .WaitFor(trustedDb)
