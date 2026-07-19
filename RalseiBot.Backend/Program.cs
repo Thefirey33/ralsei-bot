@@ -12,6 +12,7 @@ using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
 using ralsei_bot_discord.Controllers.Services;
 using ralsei_bot_discord.Handlers;
+using ralsei_bot_discord.Types.Database.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,17 +32,17 @@ builder.Logging
 builder.Services.AddSignalR()
     .AddHubOptions<MessagingHub>(options => { options.MaximumReceiveMessageSize = 10 * 1024 * 1024; });
 
-// Register the MySQL databases.
-builder.AddKeyedMySqlDataSource("scoredb");
-builder.AddKeyedMySqlDataSource("trustdb");
-builder.AddKeyedMySqlDataSource("warningdb");
-builder.AddKeyedMySqlDataSource("serverdb");
+// Register all the database contexts.
+builder.AddMySqlDbContext<ScoreDbContext>("scoredb");
+builder.AddMySqlDbContext<TrustDataContext>("trustdb");
+builder.AddMySqlDbContext<GuildDbContext>("serverdb");
+builder.AddMySqlDbContext<WarningDbContext>("warningdb");
 
 // These are the shared services that each API controller will have.
 builder.Services
-    .AddSingleton<ItrustdbService, trustdbService>() // The Trusted User Database, where the trusted users are stored.
-    .AddSingleton<IserverdbService, serverdbService>() // The server configuration database.
-    .AddSingleton<IwarningdbService, warningdbService>() // The warning/moderation database.
+    .AddSingleton<ITrustDbService, TrustDbService>() // The Trusted User Database, where the trusted users are stored.
+    .AddSingleton<IServerDbService, ServerDbService>() // The server configuration database.
+    .AddSingleton<IWarningDbService, WarningDbService>() // The warning/moderation database.
     .AddSingleton<IModerationService, ModerationService>() // The moderation service.
     .AddSingleton<ICommunicationService, CommunicationService>() // The communication service's handler.
     .AddSingleton<RandomQuoteHandler>(); // Displays the random activities that Ralsei might do everyday.
@@ -127,4 +128,21 @@ app.UseAuthorization();
 app.UseAntiforgery();
 app.UseHsts();
 app.MapControllers();
+using (var scope = app.Services.CreateScope())
+{
+    // TODO: This is a more temporary solution until database migration is added.
+
+    var scoreDbContext = scope.ServiceProvider.GetRequiredService<ScoreDbContext>();
+    await scoreDbContext.Database.EnsureCreatedAsync();
+
+    var warningDbContext = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
+    await warningDbContext.Database.EnsureCreatedAsync();
+
+    var trustDbContext = scope.ServiceProvider.GetRequiredService<TrustDataContext>();
+    await trustDbContext.Database.EnsureCreatedAsync();
+
+    var guildDbContext = scope.ServiceProvider.GetRequiredService<GuildDbContext>();
+    await guildDbContext.Database.EnsureCreatedAsync();
+}
+
 app.Run();

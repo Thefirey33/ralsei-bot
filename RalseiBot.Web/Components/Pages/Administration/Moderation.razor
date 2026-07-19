@@ -77,7 +77,7 @@
         try
         {
             var currentUserData = await HttpClient.GetFromJsonAsync<List<UserData>>($"Guild/users/{SelectedId}");
-            var currentModerationData = await HttpClient.GetFromJsonAsync<List<WarningData>>("warningdb");
+            var currentModerationData = await HttpClient.GetFromJsonAsync<List<WarningData>>("WarningDb");
             if (currentUserData == null || currentModerationData == null)
                 return;
 

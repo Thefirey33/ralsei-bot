@@ -4,7 +4,7 @@ using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var compose = builder.AddDockerComposeEnvironment("RalseiDockerCompose");
+var compose = builder.AddDockerComposeEnvironment("env");
 
 builder.Services
     .AddServiceDiscoveryCore()
@@ -14,7 +14,8 @@ var mySql = builder
     .AddMySql("mysql")
     .WithImageTag("8.0-debian")
     .WithDataVolume(isReadOnly: false)
-    .WithPhpMyAdmin(phpAdmin => phpAdmin.WithHostPort(3000))
+    .WithPhpMyAdmin(phpAdmin =>
+        phpAdmin.WithHostPort(3000))
     .WithLifetime(ContainerLifetime.Persistent);
 
 // Databases for the Ralsei Bot.
@@ -25,60 +26,16 @@ var mySql = builder
 #region Databases
 
 // The Score DB. This is the high score that the user will have. 
-var scoredb =
-    mySql
-        .AddDatabase("scoredb")
-        .WithCreationScript("""
-                            CREATE DATABASE IF NOT EXISTS scoredb;
-                            CREATE TABLE IF NOT EXISTS scoredb.users (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
-                                user_id BIGINT NOT NULL,
-                                username VARCHAR(255) NOT NULL,
-                                score INT NOT NULL
-                            );
-                            """
-        );
-
+var scoredb = mySql.AddDatabase("scoredb");
 // Trusted User Database.
 // Each trusted user is put into this database and the bot will NOT kick them for being too new.
-var trustedUser =
-    mySql.AddDatabase("trustdb")
-        .WithCreationScript("""
-                            CREATE DATABASE IF NOT EXISTS trustdb;
-                            CREATE TABLE IF NOT EXISTS trustdb.users (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
-                                user_id BIGINT NOT NULL
-                            );
-                            """
-        );
+var trustedUser = mySql.AddDatabase("trustdb");
 
 // Server Database.
 // This is where the bot configures itself for each server.
-var serverdb
-    = mySql.AddDatabase("serverdb")
-        .WithCreationScript("""
-                            CREATE DATABASE IF NOT EXISTS serverdb;
-                            CREATE TABLE IF NOT EXISTS serverdb.servers (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
-                                guild_id BIGINT NOT NULL,
-                                ralsei_channel_id BIGINT,
-                                general_channel_id BIGINT,
-                                moderation_channel_id BIGINT,
-                                UNIQUE (guild_id)
-                            );
-                            """
-        );
+var serverdb = mySql.AddDatabase("serverdb");
 
-var warningb = mySql.AddDatabase("warningdb")
-    .WithCreationScript("""
-                        CREATE DATABASE IF NOT EXISTS warningdb;
-                        CREATE TABLE IF NOT EXISTS warningdb.users (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            user_id BIGINT NOT NULL,
-                            warning_count INT NOT NULL,
-                            UNIQUE (user_id)
-                        );
-                        """);
+var warningb = mySql.AddDatabase("warningdb");
 
 #endregion
 

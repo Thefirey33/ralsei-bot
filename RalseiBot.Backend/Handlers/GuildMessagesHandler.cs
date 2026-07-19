@@ -20,7 +20,7 @@ public class GuildMessagesHandler(
     IHttpClientFactory httpClientFactory,
     RandomQuoteHandler randomQuoteHandler,
     ICommunicationService communicationService,
-    IwarningdbService warningdbService,
+    IWarningDbService warningdbService,
     IModerationService moderationService,
     RestClient restClient)
     : IMessageCreateGatewayHandler, IMessageDeleteGatewayHandler, IMessageDeleteBulkGatewayHandler

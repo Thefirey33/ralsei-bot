@@ -10,7 +10,7 @@ namespace ralsei_bot_discord.Handlers;
 
 public class GuildDatabasePrepHandler(
     ILogger<GuildDatabasePrepHandler> logger,
-    IserverdbService serverdbService,
+    IServerDbService serverDbService,
     RestClient restClient)
     : IGuildCreateGatewayHandler, IGuildDeleteGatewayHandler
 {
@@ -31,7 +31,7 @@ public class GuildDatabasePrepHandler(
     {
         GuildController.SetGuildCountChanged(true);
         logger.LogInformation("USER deleted from guild: {Id}, removing from DB...", arg.GuildId);
-        await serverdbService.RemoveEntry(arg.GuildId);
+        await serverDbService.RemoveEntry(arg.GuildId);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class GuildDatabasePrepHandler(
     {
         GuildController.SetGuildCountChanged(true);
         var channels = await restClient.GetGuildChannelsAsync(guildId);
-        await serverdbService.AddEntry(new GuildData
+        await serverDbService.AddEntry(new GuildData
         {
             GuildId = guildId,
             GeneralChannelId = ScanForChannel("general")?.Id,

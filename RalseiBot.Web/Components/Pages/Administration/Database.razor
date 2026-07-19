@@ -14,11 +14,6 @@
     private HttpClient? _httpClient;
 
     /// <summary>
-    ///     This is a boolean that says if the Database is alive and functional.
-    /// </summary>
-    private bool _databaseIsOk;
-
-    /// <summary>
     ///     If the database is busy fetching something.
     /// </summary>
     private bool FetchingDatabaseInformation => TrustData == null && GuildData == null;
@@ -45,26 +40,24 @@
     protected override async Task OnInitializedAsync()
     {
         _httpClient = ClientFactory.CreateClient("ralseibotbackend");
-        if (bool.TryParse(await _httpClient.GetStringAsync("DatabaseChecker"), out var result))
-            _databaseIsOk = result;
 
         // Load all the database entries that are required.
         if (!FetchingDatabaseInformation)
             return;
 
-        await ReloadtrustdbEntries();
-        await ReloadserverdbEntries();
+        await ReloadTrustDbEntries();
+        await ReloadServerDbEntries();
     }
 
     /// <summary>
     ///     Reload the trust database entries.
     /// </summary>
-    private async Task ReloadtrustdbEntries()
+    private async Task ReloadTrustDbEntries()
     {
         TrustData = await _httpClient?.GetFromJsonAsync<List<TrustData>>("trustdb/")!;
     }
 
-    private async Task ReloadserverdbEntries()
+    private async Task ReloadServerDbEntries()
     {
         GuildData = await _httpClient?.GetFromJsonAsync<List<GuildData>>("serverdb")!;
     }
@@ -72,7 +65,7 @@
     /// <summary>
     ///     Add an entry to the database trust entry.
     /// </summary>
-    private async Task AddtrustdbEntry()
+    private async Task AddTrustDbEntry()
     {
         if (_httpClient == null)
             return;
@@ -80,14 +73,14 @@
         var result = await _httpClient.PostAsJsonAsync("trustdb", _trustDataModel);
 
         if (result.IsSuccessStatusCode)
-            await ReloadtrustdbEntries();
+            await ReloadTrustDbEntries();
     }
 
     /// <summary>
     ///     Delete an entry from the trust database.
     /// </summary>
     /// <param name="userId">The ID to reference when deleting.</param>
-    private async Task DeletetrustdbEntry(long userId)
+    private async Task DeleteTrustDbEntry(long userId)
     {
         // If the user confirms to delete it,
         // Delete the entry.
@@ -104,7 +97,7 @@
         };
         var result = await _httpClient.SendAsync(message);
         if (result.IsSuccessStatusCode)
-            await ReloadtrustdbEntries();
+            await ReloadTrustDbEntries();
     }
 
 }
@@ -118,10 +111,6 @@
 else
 {
     @* Display database cluster information, since we have a cluster of databases. *@
-    <p class="horizontal-alignment">
-        <ImgIcon AssetLocation="@Assets["icons/warning.png"]"/>
-        Database Cluster is @(_databaseIsOk ? "Functional" : "Broken. Check your SQL Server Immediately!")
-    </p>
 
     @* Easter Egg. *@
     @if (Random.Shared.Next(0, 20) == 0)
@@ -151,7 +140,7 @@ else
                     <td>@data.Id</td>
                     <td>@data.UserId</td>
                     <td>
-                        <button class="btn-no-back" @onclick="() => DeletetrustdbEntry(data.UserId)">
+                        <button class="btn-no-back" @onclick="() => DeleteTrustDbEntry(data.UserId)">
                             <ImgIcon AssetLocation="@Assets["icons/delete.png"]"></ImgIcon>
                         </button>
                     </td>
@@ -161,7 +150,7 @@ else
     </table>
     <p>@(TrustData?.Count) items in Database.</p>
     @* This code allows the addition to the trusted user database. *@
-    <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddtrustdbEntry">
+    <EditForm Model="_trustDataModel" class="bottom-addition" OnSubmit="@AddTrustDbEntry">
         <label>
             <InputNumber class="btn" @bind-Value="_trustDataModel.UserId"
                          placeholder="User Id of the user to trust..."/>
@@ -190,7 +179,7 @@ else
             {
                 <tr>
                     <td>@data.Id</td>
-                    <td>@data.Name</td>
+                    <td>@data.GuildId</td>
                     @* This is where there are hotlinks to each channel for easy access in the database. *@
                     <td>
                         <a href="/Communication/@data.GuildId/Channel/@data.RalseiChannelId" class="btn">Enter Ralsei

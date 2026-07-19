@@ -1,11 +1,10 @@
-using System.Data;
-using MySqlConnector;
-using NetCord.Rest;
+using Microsoft.EntityFrameworkCore;
 using ralsei_bot_discord.Types.Database;
+using ralsei_bot_discord.Types.Database.Context;
 
 namespace ralsei_bot_discord.Controllers.Services;
 
-public interface IserverdbService
+public interface IServerDbService
 {
     /// <summary>
     ///     Add entry to the database.
@@ -46,10 +45,7 @@ public interface IserverdbService
     public Task<DefaultResult> UpdateEntry(GuildData guildData);
 }
 
-public class serverdbService(
-    ILogger<serverdbService> logger,
-    RestClient restClient,
-    [FromKeyedServices("serverdb")] MySqlDataSource serverdbSource) : IserverdbService
+public class ServerDbService(IServiceProvider serviceProvider) : IServerDbService
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -57,26 +53,22 @@ public class serverdbService(
     /// <param name="guildData">The data to add to the database.</param>
     public async Task<DefaultResult> AddEntry(GuildData guildData)
     {
-        await using var connection = await serverdbSource.OpenConnectionAsync();
+        using var scope = serviceProvider.CreateScope();
+        var serverDbSource = scope.ServiceProvider.GetRequiredService<GuildDbContext>();
 
-        // Insert the server database data.
-        // If it exists, simply ignore the call and continue.
-        var command =
-            new MySqlCommand(
-                "INSERT IGNORE INTO servers(guild_id, ralsei_channel_id, general_channel_id, moderation_channel_id) VALUES (@guild_id, @ralsei_channel_id, @general_channel_id, @moderation_channel_id)",
-                connection);
-        command.Parameters.AddWithValue("@guild_id", guildData.GuildId);
-        command.Parameters.AddWithValue("@ralsei_channel_id", guildData.RalseiChannelId);
-        command.Parameters.AddWithValue("@general_channel_id", guildData.GeneralChannelId);
-        command.Parameters.AddWithValue("@moderation_channel_id", guildData.ModerationChannelId);
-        var rowsAffected = await command.ExecuteNonQueryAsync();
-        await connection.CloseAsync();
+        if (serverDbSource.GuildData.Any(g => g.GuildId == guildData.GuildId))
+            return new DefaultResult
+            {
+                Message = "Already exists!",
+                StatusCode = 302
+            };
 
-        logger.LogInformation("Configuration done for guild ID: {Id}", guildData.GuildId);
+        await serverDbSource.GuildData.AddAsync(guildData);
+        await serverDbSource.SaveChangesAsync();
 
         return new DefaultResult
         {
-            Message = $"{rowsAffected} rows affected."
+            Message = "Done."
         };
     }
 
@@ -86,7 +78,21 @@ public class serverdbService(
     /// <param name="id">The ID to reference while deleting.</param>
     public async Task<DefaultResult> RemoveEntry(int id)
     {
-        return await DeletionCommandWrapper("DELETE FROM servers WHERE id=@id", id);
+        using var scope = serviceProvider.CreateScope();
+        var serverDbSource = scope.ServiceProvider.GetRequiredService<GuildDbContext>();
+
+        var result = await serverDbSource.GuildData.FindAsync(id);
+        if (result == null)
+            return new DefaultResult
+            {
+                Message = "Didn't modify anything."
+            };
+        serverDbSource.GuildData.Remove(result);
+        await serverDbSource.SaveChangesAsync();
+        return new DefaultResult
+        {
+            Message = "Done."
+        };
     }
 
     /// <summary>
@@ -95,7 +101,21 @@ public class serverdbService(
     /// <param name="guildId">The GuildID to reference while deleting.</param>
     public async Task<DefaultResult> RemoveEntry(ulong guildId)
     {
-        return await DeletionCommandWrapper("DELETE FROM servers WHERE guild_id=@id", guildId);
+        using var scope = serviceProvider.CreateScope();
+        var serverDbSource = scope.ServiceProvider.GetRequiredService<GuildDbContext>();
+
+        var result = await serverDbSource.GuildData.FirstOrDefaultAsync(g => g.GuildId == guildId);
+        if (result == null)
+            return new DefaultResult
+            {
+                Message = "Didn't modify anything."
+            };
+        serverDbSource.GuildData.Remove(result);
+        await serverDbSource.SaveChangesAsync();
+        return new DefaultResult
+        {
+            Message = "Done."
+        };
     }
 
     /// <summary>
@@ -105,35 +125,10 @@ public class serverdbService(
     /// <returns>The specified GuildData.</returns>
     public async Task<GuildData?> GetEntryById(ulong guildId)
     {
-        await using var connection = await serverdbSource.OpenConnectionAsync();
+        using var scope = serviceProvider.CreateScope();
+        var serverDbSource = scope.ServiceProvider.GetRequiredService<GuildDbContext>();
 
-        var guildInformation = await restClient.GetGuildAsync(guildId);
-
-        var command = new MySqlCommand("SELECT * FROM servers WHERE guild_id=@guild_id;", connection);
-        command.Parameters.AddWithValue("@guild_id", guildId);
-
-        var reader = await command.ExecuteReaderAsync();
-
-        if (!await reader.ReadAsync()) return null;
-        // Get all the database entries to the record.
-        var guildData = new GuildData
-        {
-            Id = reader.GetInt32("id"),
-            Name = guildInformation.Name,
-            GuildId = await reader.IsDBNullAsync("guild_id") ? null : reader.GetUInt64("guild_id"),
-            GeneralChannelId = await reader.IsDBNullAsync("general_channel_id")
-                ? null
-                : reader.GetUInt64("general_channel_id"),
-            ModerationChannelId = await reader.IsDBNullAsync("moderation_channel_id")
-                ? null
-                : reader.GetUInt64("moderation_channel_id"),
-            RalseiChannelId = await reader.IsDBNullAsync("ralsei_channel_id")
-                ? null
-                : reader.GetUInt64("ralsei_channel_id")
-        };
-
-        await connection.CloseAsync();
-        return guildData;
+        return await serverDbSource.GuildData.FirstOrDefaultAsync(g => g.GuildId == guildId);
     }
 
     /// <summary>
@@ -142,78 +137,29 @@ public class serverdbService(
     /// <returns>All the entries in the database.</returns>
     public async Task<List<GuildData>> GetEntries()
     {
-        await using var connection = await serverdbSource.OpenConnectionAsync();
+        using var scope = serviceProvider.CreateScope();
+        var serverDbSource = scope.ServiceProvider.GetRequiredService<GuildDbContext>();
 
-        var command = new MySqlCommand("SELECT * FROM servers;", connection);
-
-        // Start reading from the database entries.
-        var guildDataList = new List<GuildData>();
-        var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
-        {
-            var guildId = reader.GetUInt64("guild_id");
-            var guildInformation = await restClient.GetGuildAsync(guildId);
-            guildDataList.Add(new GuildData
-            {
-                Id = reader.GetInt32("id"),
-                Name = guildInformation.Name,
-                GeneralChannelId = reader.GetUInt64("general_channel_id"),
-                GuildId = guildId,
-                ModerationChannelId = reader.GetUInt64("moderation_channel_id"),
-                RalseiChannelId = reader.GetUInt64("ralsei_channel_id")
-            });
-        }
-
-        await connection.CloseAsync();
-        return guildDataList;
+        return await serverDbSource.GuildData.ToListAsync();
     }
 
     public async Task<DefaultResult> UpdateEntry(GuildData guildData)
     {
-        var isGuildIdNull = guildData.GuildId == null;
+        using var scope = serviceProvider.CreateScope();
+        var serverDbSource = scope.ServiceProvider.GetRequiredService<GuildDbContext>();
 
-        await using var connection = await serverdbSource.OpenConnectionAsync();
-
-        // Get based on ID or GuildID.
-        var command =
-            new MySqlCommand(
-                $"UPDATE servers SET ralsei_channel_id=@ralsei_channel_id," +
-                $"general_channel_id=@general_channel_id," +
-                $"moderation_channel_id=@moderation_channel_id WHERE {(isGuildIdNull ? "id" : "guild_id")}=@id",
-                connection);
-
-        // Update the parameters based on the new data.
-        command.Parameters.AddWithValue("@id", isGuildIdNull ? guildData.Id : guildData.GuildId);
-        command.Parameters.AddWithValue("@general_channel_id", guildData.GeneralChannelId);
-        command.Parameters.AddWithValue("@moderation_channel_id", guildData.ModerationChannelId);
-        command.Parameters.AddWithValue("@ralsei_channel_id", guildData.RalseiChannelId);
-
-        var results = await command.ExecuteNonQueryAsync();
+        var result = await serverDbSource.GuildData.FirstOrDefaultAsync(g => g.GuildId == guildData.GuildId);
+        if (result == null)
+            return new DefaultResult
+            {
+                Message = "Didn't modify anything."
+            };
+        serverDbSource.GuildData.Update(result);
+        await serverDbSource.SaveChangesAsync();
 
         return new DefaultResult
         {
-            Message = $"{results} rows affected."
-        };
-    }
-
-    /// <summary>
-    ///     Wrapper for the deletion command.
-    /// </summary>
-    /// <param name="commandString">The command to execute.</param>
-    /// <param name="parameter">The parameter. In SQL params, this must be named "id"</param>
-    private async Task<DefaultResult> DeletionCommandWrapper(string commandString, object parameter)
-    {
-        await using var connection = await serverdbSource.OpenConnectionAsync();
-
-        var command = new MySqlCommand(commandString, connection);
-        command.Parameters.AddWithValue("@id", parameter);
-        var rowsAffected = await command.ExecuteNonQueryAsync();
-        await connection.CloseAsync();
-
-        return new DefaultResult
-        {
-            Message = $"{rowsAffected} rows affected."
+            Message = "Done."
         };
     }
 }

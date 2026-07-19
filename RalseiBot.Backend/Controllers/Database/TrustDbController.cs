@@ -6,7 +6,7 @@ namespace ralsei_bot_discord.Controllers.Database;
 
 [ApiController]
 [Route("[controller]")]
-public class trustdbController(ItrustdbService service)
+public class trustdbController(ITrustDbService service)
     : ControllerBase
 {
     /// <summary>

@@ -39,8 +39,7 @@ public interface IModerationService
 
 public class ModerationService(
     RestClient restClient,
-    IserverdbService serverdbService,
-    ICommunicationService communicationService,
+    IServiceProvider serviceProvider,
     RandomQuoteHandler randomQuoteHandler,
     ILogger<ModerationService> logger) : IModerationService
 {
@@ -93,7 +92,11 @@ public class ModerationService(
         RandomQuoteHandler.ResponseTypes responseType, string reason)
     {
         // Get server information.
-        var entry = await serverdbService.GetEntryById(guildId);
+        var scope = serviceProvider.CreateScope();
+        var serverDbService = scope.ServiceProvider.GetRequiredService<ServerDbService>();
+        var communicationService = scope.ServiceProvider.GetRequiredService<CommunicationService>();
+
+        var entry = await serverDbService.GetEntryById(guildId);
         if (entry?.ModerationChannelId == null)
             return new DefaultResult
             {

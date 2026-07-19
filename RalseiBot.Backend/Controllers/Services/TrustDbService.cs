@@ -1,9 +1,10 @@
-using MySqlConnector;
+using Microsoft.EntityFrameworkCore;
 using ralsei_bot_discord.Types.Database;
+using ralsei_bot_discord.Types.Database.Context;
 
 namespace ralsei_bot_discord.Controllers.Services;
 
-public interface ItrustdbService
+public interface ITrustDbService
 {
     /// <summary>
     ///     Get all the users in the trusted database.
@@ -30,7 +31,7 @@ public interface ItrustdbService
     public Task<bool> UserExistsInDb(TrustRequestData data);
 }
 
-public class trustdbService([FromKeyedServices("trustdb")] MySqlDataSource trustdbSource) : ItrustdbService
+public class TrustDbService(IServiceProvider serviceProvider) : ITrustDbService
 {
     /// <summary>
     ///     Get all the trusted users in the database.
@@ -38,22 +39,10 @@ public class trustdbService([FromKeyedServices("trustdb")] MySqlDataSource trust
     /// <returns>Trusted users.</returns>
     public async Task<List<TrustData>> GetAllTrusts()
     {
-        await using var connection = await trustdbSource.OpenConnectionAsync();
-        var trustData = new List<TrustData>();
+        using var scope = serviceProvider.CreateScope();
+        var trustDbSource = scope.ServiceProvider.GetRequiredService<TrustDataContext>();
 
-        var command = new MySqlCommand("SELECT * FROM users;", connection);
-        var readers = await command.ExecuteReaderAsync();
-
-        while (await readers.ReadAsync())
-            trustData.Add(new TrustData
-            {
-                Id = readers.GetInt32("id"),
-                UserId = readers.GetInt64("user_id")
-            });
-
-        await connection.CloseAsync();
-
-        return trustData;
+        return await trustDbSource.TrustData.ToListAsync();
     }
 
     /// <summary>
@@ -62,11 +51,14 @@ public class trustdbService([FromKeyedServices("trustdb")] MySqlDataSource trust
     /// <param name="data">Request Data.</param>
     public async Task PostUser(TrustRequestData data)
     {
-        await using var connection = await trustdbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("INSERT INTO users(user_id) VALUES (@user_id);", connection);
-        command.Parameters.AddWithValue("@user_id", data.UserId);
-        await command.ExecuteNonQueryAsync();
-        await connection.CloseAsync();
+        using var scope = serviceProvider.CreateScope();
+        var trustDbSource = scope.ServiceProvider.GetRequiredService<TrustDataContext>();
+
+        trustDbSource.TrustData.Add(new TrustData
+        {
+            UserId = data.UserId
+        });
+        await trustDbSource.SaveChangesAsync();
     }
 
     /// <summary>
@@ -75,11 +67,14 @@ public class trustdbService([FromKeyedServices("trustdb")] MySqlDataSource trust
     /// <param name="data">Request Data.</param>
     public async Task DeleteUser(TrustRequestData data)
     {
-        await using var connection = await trustdbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("DELETE FROM users WHERE user_id=@user_id;", connection);
-        command.Parameters.AddWithValue("@user_id", data.UserId);
-        await command.ExecuteNonQueryAsync();
-        await connection.CloseAsync();
+        using var scope = serviceProvider.CreateScope();
+        var trustDbSource = scope.ServiceProvider.GetRequiredService<TrustDataContext>();
+
+        var trustData = await trustDbSource.TrustData.FirstOrDefaultAsync(t => t.UserId == data.UserId);
+        if (trustData == null)
+            return;
+        trustDbSource.TrustData.Remove(trustData);
+        await trustDbSource.SaveChangesAsync();
     }
 
     /// <summary>
@@ -88,12 +83,9 @@ public class trustdbService([FromKeyedServices("trustdb")] MySqlDataSource trust
     /// <param name="data">Request Data.</param>
     public async Task<bool> UserExistsInDb(TrustRequestData data)
     {
-        await using var connection = await trustdbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("SELECT count(*) FROM users WHERE user_id=@user_id");
-        command.Parameters.AddWithValue("@user_id", data.UserId);
+        using var scope = serviceProvider.CreateScope();
+        var trustDbSource = scope.ServiceProvider.GetRequiredService<TrustDataContext>();
 
-        // Check if there's any count of this user in the database.
-        var result = Convert.ToInt32(await command.ExecuteScalarAsync());
-        return result > 0;
+        return await trustDbSource.TrustData.AnyAsync(t => t.UserId == data.UserId);
     }
 }

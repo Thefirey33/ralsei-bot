@@ -8,7 +8,7 @@ public class WarningData
     ///     The ID Of this entry in the warning database.
     /// </summary>
     [JsonPropertyName("id")]
-    public int? Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     ///     The user ID of the user.

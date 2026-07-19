@@ -1,9 +1,10 @@
-using MySqlConnector;
+using Microsoft.EntityFrameworkCore;
 using ralsei_bot_discord.Types.Database;
+using ralsei_bot_discord.Types.Database.Context;
 
 namespace ralsei_bot_discord.Controllers.Services;
 
-public interface IwarningdbService
+public interface IWarningDbService
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -48,9 +49,9 @@ public interface IwarningdbService
     public Task<int> IncrementWarningCount(ulong userId);
 }
 
-public class warningdbService(
-    [FromKeyedServices("warningdb")] MySqlDataSource warningdbSource,
-    ILogger<warningdbService> logger) : IwarningdbService
+public class WarningDbService(
+    ILogger<WarningDbService> logger,
+    IServiceProvider serviceProvider) : IWarningDbService
 {
     /// <summary>
     ///     Add an entry to the database.
@@ -58,20 +59,18 @@ public class warningdbService(
     /// <param name="warningData">The warning data.</param>
     public async Task<DefaultResult> AddEntry(WarningData warningData)
     {
+        using var scope = serviceProvider.CreateScope();
+        var warningDbSource = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
+
         logger.LogInformation("ADD: {UserId}'s warning count is now {Count}", warningData.UserId,
             warningData.WarningCount);
-        await using var connection = await warningdbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("INSERT INTO users(user_id, warning_count) VALUES (@user_id, @warning_count)",
-            connection);
-        command.Parameters.AddWithValue("@user_id", warningData.UserId);
-        command.Parameters.AddWithValue("@warning_count", warningData.WarningCount);
 
-        var result = await command.ExecuteNonQueryAsync();
-        await connection.CloseAsync();
+        await warningDbSource.WarningData.AddAsync(warningData);
+        await warningDbSource.SaveChangesAsync();
 
         return new DefaultResult
         {
-            Message = $"{result} number of rows."
+            Message = "Done."
         };
     }
 
@@ -81,21 +80,22 @@ public class warningdbService(
     /// <param name="warningData">The warning data.</param>
     public async Task<DefaultResult> UpdateEntry(WarningData warningData)
     {
-        logger.LogInformation("{UserId}'s warning count is now {Count}", warningData.UserId, warningData.WarningCount);
-        await using var connection = await warningdbSource.OpenConnectionAsync();
-        var command =
-            new MySqlCommand("UPDATE users SET user_id=@user_id, warning_count=@warning_count WHERE id=@id",
-                connection);
-        command.Parameters.AddWithValue("@id", warningData.Id);
-        command.Parameters.AddWithValue("@user_id", warningData.UserId);
-        command.Parameters.AddWithValue("@warning_count", warningData.WarningCount);
+        using var scope = serviceProvider.CreateScope();
+        var warningDbSource = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
 
-        var result = await command.ExecuteNonQueryAsync();
-        await connection.CloseAsync();
+        var result = await warningDbSource.WarningData.FindAsync(warningData.UserId, warningData.Id);
+        if (result == null)
+            return new DefaultResult
+            {
+                Message = "Could not find warning!",
+                StatusCode = 404
+            };
+        warningDbSource.WarningData.Update(result);
+        await warningDbSource.SaveChangesAsync();
 
         return new DefaultResult
         {
-            Message = $"{result} number of rows."
+            Message = "Done."
         };
     }
 
@@ -105,7 +105,10 @@ public class warningdbService(
     /// <param name="userId">userId.</param>
     public async Task<WarningData?> GetEntryByUserId(ulong userId)
     {
-        return await GetWrapper(userId, "SELECT * FROM users WHERE user_id = @id");
+        using var scope = serviceProvider.CreateScope();
+        var warningDbSource = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
+
+        return await warningDbSource.WarningData.FirstOrDefaultAsync(data => data.UserId == userId);
     }
 
     /// <summary>
@@ -114,7 +117,10 @@ public class warningdbService(
     /// <param name="id">Id.</param>
     public async Task<WarningData?> GetEntryById(int id)
     {
-        return await GetWrapper(id, "SELECT * FROM users WHERE id = @id");
+        using var scope = serviceProvider.CreateScope();
+        var warningDbSource = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
+
+        return await warningDbSource.WarningData.FirstOrDefaultAsync(data => data.Id == id);
     }
 
     /// <summary>
@@ -123,20 +129,10 @@ public class warningdbService(
     /// <returns>Warnings.</returns>
     public async Task<List<WarningData>> GetWarnings()
     {
-        await using var connection = await warningdbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("SELECT * FROM users", connection);
-        var result = await command.ExecuteReaderAsync();
-        var warnings = new List<WarningData>();
+        using var scope = serviceProvider.CreateScope();
+        var warningDbSource = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
 
-        while (result.Read())
-            warnings.Add(new WarningData
-            {
-                UserId = result.GetUInt64("user_id"),
-                WarningCount = result.GetInt32("warning_count"),
-                Id = result.GetInt32("id")
-            });
-
-        return warnings;
+        return await warningDbSource.WarningData.ToListAsync();
     }
 
     /// <summary>
@@ -145,22 +141,25 @@ public class warningdbService(
     /// <param name="userId">The userId of the user.</param>
     public async Task<int> IncrementWarningCount(ulong userId)
     {
-        var entry = await GetEntryByUserId(userId);
-        if (entry == null)
+        using var scope = serviceProvider.CreateScope();
+        var warningDbSource = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
+
+        var result = await warningDbSource.WarningData.FirstOrDefaultAsync(data => data.UserId == userId);
+        if (result == null)
         {
-            await AddEntry(new WarningData
+            await warningDbSource.WarningData.AddAsync(new WarningData
             {
                 UserId = userId,
                 WarningCount = 1
             });
-
             return 1;
         }
 
-        entry.WarningCount++;
-        await UpdateEntry(entry);
+        result.WarningCount++;
+        warningDbSource.Update(result);
+        await warningDbSource.SaveChangesAsync();
 
-        return entry.WarningCount;
+        return result.WarningCount;
     }
 
     /// <summary>
@@ -169,40 +168,21 @@ public class warningdbService(
     /// <param name="userId">Id.</param>
     public async Task<DefaultResult> DeleteEntryById(ulong userId)
     {
-        await using var connection = await warningdbSource.OpenConnectionAsync();
-        var command = new MySqlCommand("DELETE FROM users WHERE user_id=@user_id", connection);
-        command.Parameters.AddWithValue("@user_id", userId);
+        using var scope = serviceProvider.CreateScope();
+        var warningDbSource = scope.ServiceProvider.GetRequiredService<WarningDbContext>();
 
-        var result = await command.ExecuteNonQueryAsync();
-        await connection.CloseAsync();
+        var result = await warningDbSource.WarningData.FirstOrDefaultAsync(data => data.UserId == userId);
+        if (result == null)
+            return new DefaultResult
+            {
+                Message = "Didn't modify anything."
+            };
 
+        warningDbSource.WarningData.Remove(result);
+        await warningDbSource.SaveChangesAsync();
         return new DefaultResult
         {
-            Message = $"{result} number of rows."
+            Message = "Done."
         };
-    }
-
-    /// <summary>
-    ///     This method gets the specified warning data by an ID reference...
-    /// </summary>
-    /// <param name="id">The ID reference.</param>
-    /// <param name="commandWrapper">The command that will be executed.</param>
-    /// <returns>The specified warning data.</returns>
-    /// <exception cref="NullReferenceException"></exception>
-    private async Task<WarningData?> GetWrapper(object id, string commandWrapper)
-    {
-        await using var connection = await warningdbSource.OpenConnectionAsync();
-        var command = new MySqlCommand(commandWrapper, connection);
-        command.Parameters.AddWithValue("@id", id);
-
-        var result = await command.ExecuteReaderAsync();
-        if (result.Read())
-            return new WarningData
-            {
-                UserId = result.GetUInt64("user_id"),
-                WarningCount = result.GetInt32("warning_count"),
-                Id = result.GetInt32("id")
-            };
-        return null;
     }
 }

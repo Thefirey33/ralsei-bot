@@ -7,7 +7,7 @@ namespace ralsei_bot_discord.Handlers;
 
 public class GuildMemberHandler(
     IModerationService moderationService,
-    ItrustdbService trustdbService,
+    ITrustDbService trustdbService,
     ILogger<GuildMemberHandler> logger)
     : IGuildUserAddGatewayHandler
 {
