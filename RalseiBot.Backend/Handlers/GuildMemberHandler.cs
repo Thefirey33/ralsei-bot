@@ -25,7 +25,7 @@ public class GuildMemberHandler(
         }
 
         // Checks to see if it has an avatar, or it's account is eligible enough.
-        if (arg.CreatedAt.AddYears(1) <= DateTime.Now)
+        if (arg.CreatedAt.AddYears(1) < DateTime.Now)
             await moderationService.KickUser(arg.GuildId, arg.Id, "Account Too New...");
 
         if (!arg.HasAvatar)
