@@ -36,7 +36,10 @@ public class RandomActivityHandler(
         var beforeSleepScheduleCalculation =
             TimeSpan.FromMinutes(Random.Shared.Next(MinimumDelayActionInterval, MaximumDelayActionInterval));
 
-        await gatewayClient.UpdatePresenceAsync(new PresenceProperties(UserStatusType.Online).AddActivities(new UserActivityProperties(randomQouteHandler.GetRandomResponse(RandomQouteHandler.ResponseTypes.RandomActivities), UserActivityType.Playing)), cancellationToken: stoppingToken);
+        await gatewayClient.UpdatePresenceAsync(
+            new PresenceProperties(UserStatusType.Online).AddActivities(new UserActivityProperties(
+                randomQuoteHandler.GetRandomResponse(RandomQuoteHandler.ResponseTypes.RandomActivities),
+                UserActivityType.Playing)), cancellationToken: stoppingToken);
 
         await Task.Delay(
             beforeSleepScheduleCalculation,
