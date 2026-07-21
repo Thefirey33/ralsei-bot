@@ -93,8 +93,8 @@ public class ModerationService(
     {
         // Get server information.
         var scope = serviceProvider.CreateScope();
-        var serverDbService = scope.ServiceProvider.GetRequiredService<ServerDbService>();
-        var communicationService = scope.ServiceProvider.GetRequiredService<CommunicationService>();
+        var serverDbService = scope.ServiceProvider.GetRequiredService<IServerDbService>();
+        var communicationService = scope.ServiceProvider.GetRequiredService<ICommunicationService>();
 
         var entry = await serverDbService.GetEntryById(guildId);
         if (entry?.ModerationChannelId == null)
