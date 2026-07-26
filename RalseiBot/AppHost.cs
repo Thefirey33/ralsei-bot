@@ -51,6 +51,17 @@ var backendService
         .WithHttpEndpoint(8080, 8080, isProxied: false)
         // .WaitFor(filteringService)
         // .WithReference(filteringService)
+        .WithAnnotation(new ManifestPublishingCallbackAnnotation(context =>
+        {
+            if (context.Writer is not { } jsonWriter) return;
+
+            // Injecting properties required by the built-in Compose generator
+            jsonWriter.WriteString("network_mode", "host");
+
+            jsonWriter.WriteStartArray("cap_add");
+            jsonWriter.WriteStringValue("NET_ADMIN");
+            jsonWriter.WriteEndArray();
+        }))
         .WaitFor(mySql)
         .WaitFor(scoreDb)
         .WaitFor(trustedDb)
